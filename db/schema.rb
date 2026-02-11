@@ -1,0 +1,70 @@
+# This file is auto-generated from the current state of the database. Instead
+# of editing this file, please use the migrations feature of Active Record to
+# incrementally modify your database, and then regenerate this schema definition.
+#
+# This file is the source Rails uses to define your schema when running `bin/rails
+# db:schema:load`. When creating a new database, `bin/rails db:schema:load` tends to
+# be faster and is potentially less error prone than running all of your
+# migrations from scratch. Old migrations may fail to apply correctly if those
+# migrations use external dependencies or application code.
+#
+# It's strongly recommended that you check this file into your version control system.
+
+ActiveRecord::Schema[7.1].define(version: 2026_02_11_114557) do
+  # These are extensions that must be enabled in order to support this database
+  enable_extension "plpgsql"
+
+  create_table "campaigns", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "subject", null: false
+    t.integer "status", default: 0, null: false
+    t.bigint "email_template_id", null: false
+    t.bigint "contact_list_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["contact_list_id"], name: "index_campaigns_on_contact_list_id"
+    t.index ["email_template_id"], name: "index_campaigns_on_email_template_id"
+  end
+
+  create_table "contact_list_memberships", force: :cascade do |t|
+    t.bigint "contact_id", null: false
+    t.bigint "contact_list_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["contact_id"], name: "index_contact_list_memberships_on_contact_id"
+    t.index ["contact_list_id"], name: "index_contact_list_memberships_on_contact_list_id"
+  end
+
+  create_table "contact_lists", force: :cascade do |t|
+    t.string "name"
+    t.text "description"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_contact_lists_on_name", unique: true
+  end
+
+  create_table "contacts", force: :cascade do |t|
+    t.string "email"
+    t.string "first_name"
+    t.string "last_name"
+    t.integer "status", default: 0, null: false
+    t.jsonb "custom_attributes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["email"], name: "index_contacts_on_email", unique: true
+  end
+
+  create_table "email_templates", force: :cascade do |t|
+    t.string "name"
+    t.string "subject"
+    t.text "body"
+    t.text "plain_text_body"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  add_foreign_key "campaigns", "contact_lists"
+  add_foreign_key "campaigns", "email_templates"
+  add_foreign_key "contact_list_memberships", "contact_lists"
+  add_foreign_key "contact_list_memberships", "contacts"
+end

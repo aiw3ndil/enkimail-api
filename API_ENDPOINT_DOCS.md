@@ -1,0 +1,675 @@
+# Documentación de la API de Enkimail
+
+Este documento describe cómo interactuar con los endpoints de la API de Enkimail para enviar correos electrónicos, gestionar plantillas, contactos, listas de contactos y campañas.
+
+---
+
+## Autenticación
+
+Todas las solicitudes a los endpoints protegidos de esta API deben incluir un token de autorización en el encabezado `Authorization`. Actualmente, la autenticación se realiza mediante un token fijo (hardcoded) para propósitos de desarrollo.
+
+**Encabezado de la solicitud:**
+`Authorization: Bearer my_secret_api_token`
+
+---
+
+## Endpoints
+
+### 1. Gestión de Plantillas de Correo (`/email_templates`)
+
+Permite crear, leer, actualizar y eliminar plantillas de correo electrónico.
+
+#### `POST /email_templates` - Crear Plantilla
+
+*   **Descripción:** Crea una nueva plantilla de correo electrónico.
+*   **Método:** `POST`
+*   **Autenticación:** Sí
+*   **Cuerpo de la Solicitud (application/json):**
+    | Parámetro           | Tipo     | Requerido | Descripción                                                                |
+    | :------------------ | :------- | :-------- | :------------------------------------------------------------------------- |
+    | `email_template`    | `Object` | Sí        | Objeto que contiene los datos de la plantilla.                             |
+    | `email_template.name` | `String` | Sí        | Nombre único de la plantilla (ej. `welcome_email`).                       |
+    | `email_template.subject` | `String` | Sí        | Asunto del correo. Puede contener variables ERB (ej. `Hola <%= user_name %>`). |
+    | `email_template.body` | `String` | Sí        | Cuerpo HTML del correo. Puede contener variables ERB.                      |
+    | `email_template.plain_text_body` | `String` | No        | Cuerpo de texto plano del correo. Puede contener variables ERB.            |
+*   **Ejemplo de Solicitud:**
+    ```json
+    {
+      "email_template": {
+        "name": "welcome_email",
+        "subject": "Bienvenido, <%= user_name %> a <%= company_name %>!",
+        "body": "<h1>Hola <%= user_name %>,</h1><p>Gracias por unirte a <%= company_name %>.</p>",
+        "plain_text_body": "Hola <%= user_name %>,\nGracias por unirte a <%= company_name %>."
+      }
+    }
+    ```
+*   **Respuesta Exitosa (201 Created):**
+    ```json
+    {
+      "id": 1,
+      "name": "welcome_email",
+      "subject": "Bienvenido, <%= user_name %> a <%= company_name %>!",
+      "body": "<h1>Hola <%= user_name %>,</h1><p>Gracias por unirte a <%= company_name %>.</p>",
+      "plain_text_body": "Hola <%= user_name %>,\nGracias por unirte a <%= company_name %>.",
+      "created_at": "...",
+      "updated_at": "..."
+    }
+    ```
+*   **Ejemplo `curl`:**
+    ```bash
+    curl -X POST \
+      http://localhost:3000/email_templates \
+      -H 'Authorization: Bearer my_secret_api_token' \
+      -H 'Content-Type: application/json' \
+      -d '{
+        "email_template": {
+          "name": "welcome_email",
+          "subject": "Bienvenido, <%= user_name %> a <%= company_name %>!",
+          "body": "<h1>Hola <%= user_name %>,</h1><p>Gracias por unirte a <%= company_name %>.</p>",
+          "plain_text_body": "Hola <%= user_name %>,\nGracias por unirte a <%= company_name %>."
+        }
+      }'
+    ```
+
+#### `GET /email_templates` - Listar Plantillas
+
+*   **Descripción:** Recupera una lista de todas las plantillas de correo electrónico.
+*   **Método:** `GET`
+*   **Autenticación:** Sí
+*   **Respuesta Exitosa (200 OK):** Array de objetos `email_template`.
+*   **Ejemplo `curl`:**
+    ```bash
+    curl -X GET \
+      http://localhost:3000/email_templates \
+      -H 'Authorization: Bearer my_secret_api_token'
+    ```
+
+#### `GET /email_templates/:id` - Mostrar Plantilla
+
+*   **Descripción:** Recupera una plantilla de correo electrónico específica por su ID.
+*   **Método:** `GET`
+*   **Autenticación:** Sí
+*   **Parámetros de Ruta:** `id` (entero, ID de la plantilla).
+*   **Respuesta Exitosa (200 OK):** Objeto `email_template`.
+*   **Ejemplo `curl`:**
+    ```bash
+    curl -X GET \
+      http://localhost:3000/email_templates/1 \
+      -H 'Authorization: Bearer my_secret_api_token'
+    ```
+
+#### `PATCH/PUT /email_templates/:id` - Actualizar Plantilla
+
+*   **Descripción:** Actualiza una plantilla de correo electrónico existente por su ID.
+*   **Método:** `PATCH` o `PUT`
+*   **Autenticación:** Sí
+*   **Parámetros de Ruta:** `id` (entero, ID de la plantilla).
+*   **Cuerpo de la Solicitud (application/json):** Igual que `POST /email_templates`, pero con los campos a actualizar.
+*   **Respuesta Exitosa (200 OK):** Objeto `email_template` actualizado.
+*   **Ejemplo `curl`:**
+    ```bash
+    curl -X PATCH \
+      http://localhost:3000/email_templates/1 \
+      -H 'Authorization: Bearer my_secret_api_token' \
+      -H 'Content-Type: application/json' \
+      -d '{
+        "email_template": {
+          "subject": "Asunto Actualizado: <%= user_name %>"
+        }
+      }'
+    ```
+
+#### `DELETE /email_templates/:id` - Eliminar Plantilla
+
+*   **Descripción:** Elimina una plantilla de correo electrónico existente por su ID.
+*   **Método:** `DELETE`
+*   **Autenticación:** Sí
+*   **Parámetros de Ruta:** `id` (entero, ID de la plantilla).
+*   **Respuesta Exitosa (204 No Content):** Sin contenido en el cuerpo de la respuesta.
+*   **Ejemplo `curl`:**
+    ```bash
+    curl -X DELETE \
+      http://localhost:3000/email_templates/1 \
+      -H 'Authorization: Bearer my_secret_api_token'
+    ```
+
+### 2. Gestión de Contactos (`/contacts`)
+
+Permite crear, leer, actualizar y eliminar contactos individuales.
+
+#### `POST /contacts` - Crear Contacto
+
+*   **Descripción:** Crea un nuevo contacto.
+*   **Método:** `POST`
+*   **Autenticación:** Sí
+*   **Cuerpo de la Solicitud (application/json):**
+    | Parámetro           | Tipo     | Requerido | Descripción                                                                |
+    | :------------------ | :------- | :-------- | :------------------------------------------------------------------------- |
+    | `contact`           | `Object` | Sí        | Objeto que contiene los datos del contacto.                                |
+    | `contact.email`     | `String` | Sí        | Dirección de correo electrónico del contacto (debe ser única).             |
+    | `contact.first_name`| `String` | No        | Nombre del contacto.                                                       |
+    | `contact.last_name` | `String` | No        | Apellido del contacto.                                                     |
+    | `contact.status`    | `Integer`/`String` | No | Estado del contacto (0: `subscribed`, 1: `unsubscribed`, 2: `bounced`, 3: `complained`). Por defecto `subscribed` (0). |
+    | `contact.custom_attributes` | `Object` | No | Objeto JSON con atributos personalizados del contacto.                  |
+*   **Ejemplo de Solicitud:**
+    ```json
+    {
+      "contact": {
+        "email": "juan.perez@example.com",
+        "first_name": "Juan",
+        "last_name": "Perez",
+        "status": "subscribed",
+        "custom_attributes": {
+          "city": "Madrid",
+          "age": 30
+        }
+      }
+    }
+    ```
+*   **Respuesta Exitosa (201 Created):**
+    ```json
+    {
+      "id": 1,
+      "email": "juan.perez@example.com",
+      "first_name": "Juan",
+      "last_name": "Perez",
+      "status": "subscribed",
+      "custom_attributes": {
+        "city": "Madrid",
+        "age": 30
+      },
+      "created_at": "...",
+      "updated_at": "..."
+    }
+    ```
+*   **Ejemplo `curl`:**
+    ```bash
+    curl -X POST \
+      http://localhost:3000/contacts \
+      -H 'Authorization: Bearer my_secret_api_token' \
+      -H 'Content-Type: application/json' \
+      -d '{
+        "contact": {
+          "email": "nuevo.contacto@example.com",
+          "first_name": "Nuevo",
+          "last_name": "Contacto",
+          "status": "subscribed"
+        }
+      }'
+    ```
+
+#### `GET /contacts` - Listar Contactos
+
+*   **Descripción:** Recupera una lista de todos los contactos.
+*   **Método:** `GET`
+*   **Autenticación:** Sí
+*   **Respuesta Exitosa (200 OK):** Array de objetos `contact`.
+*   **Ejemplo `curl`:**
+    ```bash
+    curl -X GET \
+      http://localhost:3000/contacts \
+      -H 'Authorization: Bearer my_secret_api_token'
+    ```
+
+#### `GET /contacts/:id` - Mostrar Contacto
+
+*   **Descripción:** Recupera un contacto específico por su ID.
+*   **Método:** `GET`
+*   **Autenticación:** Sí
+*   **Parámetros de Ruta:** `id` (entero, ID del contacto).
+*   **Respuesta Exitosa (200 OK):** Objeto `contact`.
+*   **Ejemplo `curl`:**
+    ```bash
+    curl -X GET \
+      http://localhost:3000/contacts/1 \
+      -H 'Authorization: Bearer my_secret_api_token'
+    ```
+
+#### `PATCH/PUT /contacts/:id` - Actualizar Contacto
+
+*   **Descripción:** Actualiza un contacto existente por su ID.
+*   **Método:** `PATCH` o `PUT`
+*   **Autenticación:** Sí
+*   **Parámetros de Ruta:** `id` (entero, ID del contacto).
+*   **Cuerpo de la Solicitud (application/json):** Igual que `POST /contacts`, pero con los campos a actualizar.
+*   **Respuesta Exitosa (200 OK):** Objeto `contact` actualizado.
+*   **Ejemplo `curl`:**
+    ```bash
+    curl -X PATCH \
+      http://localhost:3000/contacts/1 \
+      -H 'Authorization: Bearer my_secret_api_token' \
+      -H 'Content-Type: application/json' \
+      -d '{
+        "contact": {
+          "status": "unsubscribed"
+        }
+      }'
+    ```
+
+#### `DELETE /contacts/:id` - Eliminar Contacto
+
+*   **Descripción:** Elimina un contacto existente por su ID.
+*   **Método:** `DELETE`
+*   **Autenticación:** Sí
+*   **Parámetros de Ruta:** `id` (entero, ID del contacto).
+*   **Respuesta Exitosa (204 No Content):** Sin contenido en el cuerpo de la respuesta.
+*   **Ejemplo `curl`:**
+    ```bash
+    curl -X DELETE \
+      http://localhost:3000/contacts/1 \
+      -H 'Authorization: Bearer my_secret_api_token'
+    ```
+
+### 3. Gestión de Listas de Contactos (`/contact_lists`)
+
+Permite crear, leer, actualizar y eliminar listas de contactos, así como gestionar la membresía de contactos en dichas listas.
+
+#### `POST /contact_lists` - Crear Lista de Contactos
+
+*   **Descripción:** Crea una nueva lista de contactos.
+*   **Método:** `POST`
+*   **Autenticación:** Sí
+*   **Cuerpo de la Solicitud (application/json):**
+    | Parámetro           | Tipo     | Requerido | Descripción                                                                |
+    | :------------------ | :------- | :-------- | :------------------------------------------------------------------------- |
+    | `contact_list`      | `Object` | Sí        | Objeto que contiene los datos de la lista de contactos.                    |
+    | `contact_list.name` | `String` | Sí        | Nombre único de la lista (ej. `clientes_premium`).                         |
+    | `contact_list.description` | `String` | No        | Descripción de la lista de contactos.                                      |
+*   **Ejemplo de Solicitud:**
+    ```json
+    {
+      "contact_list": {
+        "name": "Clientes Premium",
+        "description": "Lista de clientes con alto valor."
+      }
+    }
+    ```
+*   **Respuesta Exitosa (201 Created):**
+    ```json
+    {
+      "id": 1,
+      "name": "Clientes Premium",
+      "description": "Lista de clientes con alto valor.",
+      "created_at": "...",
+      "updated_at": "..."
+    }
+    ```
+*   **Ejemplo `curl`:**
+    ```bash
+    curl -X POST \
+      http://localhost:3000/contact_lists \
+      -H 'Authorization: Bearer my_secret_api_token' \
+      -H 'Content-Type: application/json' \
+      -d '{
+        "contact_list": {
+          "name": "Newsletter Suscriptores",
+          "description": "Todos los suscriptores del newsletter."
+        }
+      }'
+    ```
+
+#### `GET /contact_lists` - Listar Listas de Contactos
+
+*   **Descripción:** Recupera una lista de todas las listas de contactos.
+*   **Método:** `GET`
+*   **Autenticación:** Sí
+*   **Respuesta Exitosa (200 OK):** Array de objetos `contact_list`.
+*   **Ejemplo `curl`:**
+    ```bash
+    curl -X GET \
+      http://localhost:3000/contact_lists \
+      -H 'Authorization: Bearer my_secret_api_token'
+    ```
+
+#### `GET /contact_lists/:id` - Mostrar Lista de Contactos
+
+*   **Descripción:** Recupera una lista de contactos específica por su ID, incluyendo sus contactos asociados.
+*   **Método:** `GET`
+*   **Autenticación:** Sí
+*   **Parámetros de Ruta:** `id` (entero, ID de la lista).
+*   **Respuesta Exitosa (200 OK):** Objeto `contact_list` con array de `contacts`.
+*   **Ejemplo `curl`:**
+    ```bash
+    curl -X GET \
+      http://localhost:3000/contact_lists/1 \
+      -H 'Authorization: Bearer my_secret_api_token'
+    ```
+
+#### `PATCH/PUT /contact_lists/:id` - Actualizar Lista de Contactos
+
+*   **Descripción:** Actualiza una lista de contactos existente por su ID.
+*   **Método:** `PATCH` o `PUT`
+*   **Autenticación:** Sí
+*   **Parámetros de Ruta:** `id` (entero, ID de la lista).
+*   **Cuerpo de la Solicitud (application/json):** Igual que `POST /contact_lists`, pero con los campos a actualizar.
+*   **Respuesta Exitosa (200 OK):** Objeto `contact_list` actualizado.
+*   **Ejemplo `curl`:**
+    ```bash
+    curl -X PATCH \
+      http://localhost:3000/contact_lists/1 \
+      -H 'Authorization: Bearer my_secret_api_token' \
+      -H 'Content-Type: application/json' \
+      -d '{
+        "contact_list": {
+          "description": "Todos los suscriptores activos del newsletter."
+        }
+      }'
+    ```
+
+#### `DELETE /contact_lists/:id` - Eliminar Lista de Contactos
+
+*   **Descripción:** Elimina una lista de contactos existente por su ID.
+*   **Método:** `DELETE`
+*   **Autenticación:** Sí
+*   **Parámetros de Ruta:** `id` (entero, ID de la lista).
+*   **Respuesta Exitosa (204 No Content):** Sin contenido en el cuerpo de la respuesta.
+*   **Ejemplo `curl`:**
+    ```bash
+    curl -X DELETE \
+      http://localhost:3000/contact_lists/1 \
+      -H 'Authorization: Bearer my_secret_api_token'
+    ```
+
+#### `POST /contact_lists/:id/add_contact` - Añadir Contacto a Lista
+
+*   **Descripción:** Añade un contacto existente a una lista de contactos específica.
+*   **Método:** `POST`
+*   **Autenticación:** Sí
+*   **Parámetros de Ruta:** `id` (entero, ID de la lista de contactos).
+*   **Cuerpo de la Solicitud (application/json):**
+    | Parámetro       | Tipo     | Requerido | Descripción                                                                |
+    | :-------------- | :------- | :-------- | :------------------------------------------------------------------------- |
+    | `contact_id`    | `Integer`| Sí        | El ID del contacto a añadir a la lista.                                    |
+*   **Respuesta Exitosa (200 OK):** Array de contactos en la lista (incluyendo el añadido).
+*   **Ejemplo `curl`:**
+    ```bash
+    curl -X POST \
+      http://localhost:3000/contact_lists/1/add_contact \
+      -H 'Authorization: Bearer my_secret_api_token' \
+      -H 'Content-Type: application/json' \
+      -d '{
+        "contact_id": 1
+      }'
+    ```
+
+#### `DELETE /contact_lists/:id/remove_contact` - Eliminar Contacto de Lista
+
+*   **Descripción:** Elimina un contacto de una lista de contactos específica.
+*   **Método:** `DELETE`
+*   **Autenticación:** Sí
+*   **Parámetros de Ruta:** `id` (entero, ID de la lista de contactos).
+*   **Cuerpo de la Solicitud (application/json):**
+    | Parámetro       | Tipo     | Requerido | Descripción                                                                |
+    | :-------------- | :------- | :-------- | :------------------------------------------------------------------------- |
+    | `contact_id`    | `Integer`| Sí        | El ID del contacto a eliminar de la lista.                                 |
+*   **Respuesta Exitosa (200 OK):** Array de contactos restantes en la lista.
+*   **Ejemplo `curl`:**
+    ```bash
+    curl -X DELETE \
+      http://localhost:3000/contact_lists/1/remove_contact \
+      -H 'Authorization: Bearer my_secret_api_token' \
+      -H 'Content-Type: application/json' \
+      -d '{
+        "contact_id": 1
+      }'
+    ```
+
+### 4. Gestión de Campañas (`/campaigns`)
+
+Permite crear, leer, actualizar y eliminar campañas de email.
+
+#### `POST /campaigns` - Crear Campaña
+
+*   **Descripción:** Crea una nueva campaña de correo electrónico.
+*   **Método:** `POST`
+*   **Autenticación:** Sí
+*   **Cuerpo de la Solicitud (application/json):**
+    | Parámetro           | Tipo     | Requerido | Descripción                                                                |
+    | :------------------ | :------- | :-------- | :------------------------------------------------------------------------- |
+    | `campaign`          | `Object` | Sí        | Objeto que contiene los datos de la campaña.                              |
+    | `campaign.name`     | `String` | Sí        | Nombre de la campaña.                                                     |
+    | `campaign.subject`  | `String` | Sí        | Asunto del correo de la campaña.                                          |
+    | `campaign.status`   | `Integer`/`String` | No | Estado de la campaña (0: `draft`, 1: `sent`, 2: `failed`). Por defecto `draft` (0). |
+    | `campaign.email_template_id` | `Integer`| Sí | ID de la plantilla de correo a usar.                                       |
+    | `campaign.contact_list_id` | `Integer`| Sí | ID de la lista de contactos a la que se enviará la campaña.                |
+*   **Ejemplo de Solicitud:**
+    ```json
+    {
+      "campaign": {
+        "name": "Campaña de Lanzamiento",
+        "subject": "¡Gran Lanzamiento de Nuestro Nuevo Producto!",
+        "email_template_id": 1,
+        "contact_list_id": 1
+      }
+    }
+    ```
+*   **Respuesta Exitosa (201 Created):**
+    ```json
+    {
+      "id": 1,
+      "name": "Campaña de Lanzamiento",
+      "subject": "¡Gran Lanzamiento de Nuestro Nuevo Producto!",
+      "status": "draft",
+      "email_template_id": 1,
+      "contact_list_id": 1,
+      "created_at": "...",
+      "updated_at": "...",
+      "email_template": {...},
+      "contact_list": {...}
+    }
+    ```
+*   **Ejemplo `curl`:**
+    ```bash
+    curl -X POST \
+      http://localhost:3000/campaigns \
+      -H 'Authorization: Bearer my_secret_api_token' \
+      -H 'Content-Type: application/json' \
+      -d '{
+        "campaign": {
+          "name": "Campaña de Verano",
+          "subject": "¡Ofertas de Verano!",
+          "email_template_id": 1,
+          "contact_list_id": 1
+        }
+      }'
+    ```
+
+#### `GET /campaigns` - Listar Campañas
+
+*   **Descripción:** Recupera una lista de todas las campañas.
+*   **Método:** `GET`
+*   **Autenticación:** Sí
+*   **Respuesta Exitosa (200 OK):** Array de objetos `campaign`, incluyendo `email_template` y `contact_list`.
+*   **Ejemplo `curl`:**
+    ```bash
+    curl -X GET \
+      http://localhost:3000/campaigns \
+      -H 'Authorization: Bearer my_secret_api_token'
+    ```
+
+#### `GET /campaigns/:id` - Mostrar Campaña
+
+*   **Descripción:** Recupera una campaña específica por su ID, incluyendo su plantilla de correo y lista de contactos asociadas.
+*   **Método:** `GET`
+*   **Autenticación:** Sí
+*   **Parámetros de Ruta:** `id` (entero, ID de la campaña).
+*   **Respuesta Exitosa (200 OK):** Objeto `campaign`, incluyendo `email_template` y `contact_list`.
+*   **Ejemplo `curl`:**
+    ```bash
+    curl -X GET \
+      http://localhost:3000/campaigns/1 \
+      -H 'Authorization: Bearer my_secret_api_token'
+    ```
+
+#### `PATCH/PUT /campaigns/:id` - Actualizar Campaña
+
+*   **Descripción:** Actualiza una campaña existente por su ID.
+*   **Método:** `PATCH` o `PUT`
+*   **Autenticación:** Sí
+*   **Parámetros de Ruta:** `id` (entero, ID de la campaña).
+*   **Cuerpo de la Solicitud (application/json):** Igual que `POST /campaigns`, pero con los campos a actualizar.
+*   **Respuesta Exitosa (200 OK):** Objeto `campaign` actualizado.
+*   **Ejemplo `curl`:**
+    ```bash
+    curl -X PATCH \
+      http://localhost:3000/campaigns/1 \
+      -H 'Authorization: Bearer my_secret_api_token' \
+      -H 'Content-Type: application/json' \
+      -d '{
+        "campaign": {
+          "status": "draft"
+        }
+      }'
+    ```
+
+#### `DELETE /campaigns/:id` - Eliminar Campaña
+
+*   **Descripción:** Elimina una campaña existente por su ID.
+*   **Método:** `DELETE`
+*   **Autenticación:** Sí
+*   **Parámetros de Ruta:** `id` (entero, ID de la campaña).
+*   **Respuesta Exitosa (204 No Content):** Sin contenido en el cuerpo de la respuesta.
+*   **Ejemplo `curl`:**
+    ```bash
+    curl -X DELETE \
+      http://localhost:3000/campaigns/1 \
+      -H 'Authorization: Bearer my_secret_api_token'
+    ```
+
+#### `POST /campaigns/:id/send` - Enviar Campaña
+
+*   **Descripción:** Encola una campaña para ser enviada a todos los contactos de su lista asociada. La campaña debe estar en estado `draft`.
+*   **Método:** `POST`
+*   **Autenticación:** Sí
+*   **Parámetros de Ruta:** `id` (entero, ID de la campaña).
+*   **Cuerpo de la Solicitud (application/json):** No requiere cuerpo.
+*   **Respuesta Exitosa (202 Accepted):**
+    ```json
+    {
+      "status": "success",
+      "message": "Campaign queued for sending",
+      "campaign": {
+        "id": 1,
+        "name": "Campaña de Lanzamiento",
+        "subject": "¡Gran Lanzamiento de Nuestro Nuevo Producto!",
+        "status": "sent",
+        "email_template_id": 1,
+        "contact_list_id": 1,
+        "created_at": "...",
+        "updated_at": "...",
+        "email_template": {...},
+        "contact_list": {...}
+      }
+    }
+    ```
+*   **Respuesta de Error (422 Unprocessable Entity):** Si la campaña no está en estado `draft`.
+    ```json
+    {
+      "status": "error",
+      "message": "Campaign must be in draft status to be sent"
+    }
+    ```
+*   **Ejemplo `curl`:**
+    ```bash
+    curl -X POST \
+      http://localhost:3000/campaigns/1/send \
+      -H 'Authorization: Bearer my_secret_api_token'
+    ```
+
+### 5. Envío de Correo Electrónico (`/emails`)
+
+Permite enviar correos electrónicos individuales utilizando una plantilla definida.
+
+#### `POST /emails` - Enviar Correo con Plantilla
+
+*   **Descripción:** Encola un trabajo de envío de correo electrónico utilizando una plantilla especificada y datos dinámicos.
+*   **Método:** `POST`
+*   **Autenticación:** Sí
+*   **Cuerpo de la Solicitud (application/json):**
+    | Parámetro       | Tipo     | Requerido | Descripción                                                                |
+    | :-------------- | :------- | :-------- | :------------------------------------------------------------------------- |
+    | `to`            | `String` | Sí        | La dirección de correo electrónico del destinatario.                       |
+    | `template_name` | `String` | Sí        | El nombre de la plantilla de correo a utilizar (ej. `welcome_email`).     |
+    | `data`          | `Object` | No        | Un objeto JSON con pares clave-valor para interpolar en la plantilla.       |
+*   **Ejemplo de Solicitud:**
+    ```json
+    {
+      "to": "destinatario@example.com",
+      "template_name": "welcome_email",
+      "data": {
+        "user_name": "Alice",
+        "company_name": "Example Corp"
+      }
+    }
+    ```
+*   **Respuesta Exitosa (202 Accepted):**
+    ```json
+    {
+      "status": "success",
+      "message": "Email queued for sending using template",
+      "to": "destinatario@example.com",
+      "template_name": "welcome_email",
+      "data": {
+        "user_name": "Alice",
+        "company_name": "Example Corp"
+      }
+    }
+    ```
+*   **Ejemplo `curl`:**
+    ```bash
+    curl -X POST \
+      http://localhost:3000/emails \
+      -H 'Authorization: Bearer my_secret_api_token' \
+      -H 'Content-Type: application/json' \
+      -d '{
+        "to": "nuevo_usuario@example.com",
+        "template_name": "welcome_email",
+        "data": {
+          "user_name": "Juan Perez",
+          "company_name": "Enkimail Solutions"
+        }
+      }'
+    ```
+
+---
+
+## Respuestas de Error Comunes
+
+*   **400 Bad Request - Parámetros Faltantes/Inválidos:**
+    ```json
+    {
+      "status": "error",
+      "message": "param is missing or the value is empty: to"
+    }
+    ```
+*   **401 Unauthorized - No Autenticado:**
+    ```json
+    {
+      "error": "Not Authorized"
+    }
+    ```
+*   **403 Forbidden - No Autorizado:**
+    ```json
+    {
+      "error": "You are not authorized to perform this action."
+    }
+    ```
+*   **404 Not Found - Recurso No Encontrado:**
+    ```json
+    {
+      "error": "EmailTemplate not found"
+    }
+    ```
+*   **422 Unprocessable Entity - Error de Validación:**
+    ```json
+    {
+      "name": ["has already been taken"]
+    }
+    ```
+*   **500 Internal Server Error - Error del Servidor:**
+    ```json
+    {
+      "status": "error",
+      "message": "Mensaje de error interno del servidor"
+    }
+    ```

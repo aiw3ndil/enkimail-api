@@ -1,0 +1,63 @@
+services:
+  # Base de datos
+  db:
+    image: postgres:15-alpine
+    container_name: enkimail-db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: password
+    restart: always
+
+  # El motor de colas (Asegúrate de que se llame exactamente "redis")
+  redis:
+    image: redis:7-alpine
+    container_name: enkimail-redis
+    ports:
+      - "6379:6379"
+    restart: always
+
+  # Aplicación Rails
+  web:
+    build: .
+    container_name: enkimail-app
+    command: /usr/bin/entrypoint.sh rails s -p 3000 -b '0.0.0.0'
+    volumes:
+      - .:/app
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+      - redis
+    environment:
+      REDIS_URL: redis://redis:6379/1
+      DATABASE_URL: postgres://postgres:password@db:5432/enkimail_development
+
+  # Sidekiq para enviar correos en segundo plano
+  sidekiq:
+    build: .
+    container_name: enkimail-sidekiq
+    command: bundle exec sidekiq
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - redis
+    environment:
+      REDIS_URL: redis://redis:6379/1
+      DATABASE_URL: postgres://postgres:password@db:5432/enkimail_development
+
+  # Mailpit para ver los correos en el navegador
+  mailpit:
+    image: axllent/mailpit
+    container_name: enkimail-mailpit
+    # Solo exponemos el puerto 8025 para que TÚ veas los correos. 
+    # El 1025 no hace falta exponerlo porque Rails hablará con él internamente.
+    ports:
+      - "8025:8025" 
+    environment:
+      - MP_UI_AUTH=admin:805473
+    restart: always
+
+volumes:
+  postgres_data:
