@@ -33,7 +33,7 @@ gem "bootsnap", require: false
 # gem "image_processing", "~> 1.2"
 
 # Use Rack CORS for handling Cross-Origin Resource Sharing (CORS), making cross-origin Ajax possible
-# gem "rack-cors"
+gem "rack-cors"
 
 # Use Redis adapter para Sidekiq y Action Cable
 gem "redis", ">= 4.0.1"

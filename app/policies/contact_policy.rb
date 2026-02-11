@@ -19,6 +19,14 @@ class ContactPolicy < ApplicationPolicy
     record.user_id == user.id
   end
 
+  def import?
+    user.present?
+  end
+
+  def export?
+    user.present?
+  end
+
   class Scope < Scope
     def resolve
       scope.where(user_id: user.id)

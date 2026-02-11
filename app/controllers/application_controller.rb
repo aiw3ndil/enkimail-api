@@ -1,5 +1,6 @@
 class ApplicationController < ActionController::API
   include Pundit::Authorization
+  include Rails.application.routes.url_helpers
 
   # Pundit: rescue not authorized errors
   rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized

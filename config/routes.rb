@@ -21,6 +21,12 @@ Rails.application.routes.draw do
     namespace :v1 do
       post '/login', to: 'authentication#login'
       post '/register', to: 'authentication#register'
+      resources :contacts do
+        collection do
+          post :import
+          get :export
+        end
+      end
     end
   end
 

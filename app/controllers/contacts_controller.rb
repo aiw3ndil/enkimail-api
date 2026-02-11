@@ -42,6 +42,24 @@ class ContactsController < ApplicationController
     head :no_content
   end
 
+  # POST /contacts/import
+  def import
+    authorize Contact # authorize the action against the Contact class
+    if params[:file].present? && params[:file].respond_to?(:read)
+      ContactImportJob.perform_async(params[:file].read, current_user.id)
+      render json: { message: 'Contact import has been queued.' }, status: :accepted
+    else
+      render json: { error: 'No CSV file provided.' }, status: :unprocessable_entity
+    end
+  end
+
+  # GET /contacts/export
+  def export
+    authorize Contact # authorize the action against the Contact class
+    ContactExportJob.perform_async(current_user.id)
+    render json: { message: 'Contact export has been queued. You will receive an email with the download link shortly.' }, status: :accepted
+  end
+
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_contact

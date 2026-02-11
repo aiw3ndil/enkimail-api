@@ -1,21 +1,22 @@
 require 'erb'
 require 'nokogiri' # Require Nokogiri
+require 'ostruct'
 
 class UserMailer < ApplicationMailer
   include Rails.application.routes.url_helpers # For track_open_url and track_click_url
 
-  def send_generic_email(to, template_name, data = {}, contact_id, campaign_id = nil, email_template_id = nil)
+  def send_generic_email(to, template_name, contact_id, data = {}, campaign_id = nil, email_template_id = nil)
     template = EmailTemplate.find_by!(name: template_name)
     contact = Contact.find(contact_id) # Ensure contact exists
 
     # Render subject with ERB
-    rendered_subject = ERB.new(template.subject).result_with_hash(data)
+    rendered_subject = render_erb_string(template.subject, data)
 
     # Render HTML body with ERB
-    html_body_content = ERB.new(template.body).result_with_hash(data)
+    html_body_content = render_erb_string(template.body, data)
     
     # Render plain text body with ERB (if available)
-    plain_text_body_content = template.plain_text_body ? ERB.new(template.plain_text_body).result_with_hash(data) : nil
+    plain_text_body_content = template.plain_text_body ? render_erb_string(template.plain_text_body, data) : nil
 
     # --- Tracking Logic ---
 
@@ -56,5 +57,11 @@ class UserMailer < ApplicationMailer
       format.html { render html: html_body_content.html_safe }
       format.text { render plain: plain_text_body_content || html_body_content } # Fallback to HTML body if no plain text
     end
+  end
+
+  private
+
+  def render_erb_string(template_string, data)
+    ERB.new(template_string).result(OpenStruct.new(data).instance_eval { binding })
   end
 end
