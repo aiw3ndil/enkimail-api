@@ -1,4 +1,7 @@
 Rails.application.routes.draw do
+  # Tracking routes
+  get '/track/opens/:email_event_id', to: 'tracking#open', as: :track_open
+  get '/track/clicks/:email_event_id', to: 'tracking#click', as: :track_click
   post '/emails', to: 'emails#create'
   resources :email_templates
   resources :contacts

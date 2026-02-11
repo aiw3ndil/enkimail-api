@@ -21,7 +21,10 @@ class CampaignSenderWorker
       EmailSenderWorker.perform_async(
         contact.email, # 'to' address
         email_template.name, # template_name
-        data # data for interpolation
+        data, # data for interpolation
+        contact.id, # contact_id for tracking
+        campaign.id, # campaign_id for tracking
+        email_template.id # email_template_id for tracking
       )
     end
   rescue ActiveRecord::RecordNotFound

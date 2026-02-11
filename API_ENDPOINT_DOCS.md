@@ -1,6 +1,6 @@
 # Documentación de la API de Enkimail
 
-Este documento describe cómo interactuar con los endpoints de la API de Enkimail para enviar correos electrónicos, gestionar plantillas, contactos, listas de contactos y campañas.
+Este documento describe cómo interactuar con los endpoints de la API de Enkimail para enviar correos electrónicos, gestionar plantillas, contactos, listas de contactos y campañas, e implementar el seguimiento de eventos.
 
 ---
 
@@ -576,20 +576,48 @@ Permite crear, leer, actualizar y eliminar campañas de email.
       -H 'Authorization: Bearer my_secret_api_token'
     ```
 
-### 5. Envío de Correo Electrónico (`/emails`)
+### 5. Seguimiento de Correos (`/track`)
+
+Endpoints para el seguimiento de aperturas y clics en correos electrónicos. Estos endpoints no son para ser llamados directamente por el usuario final, sino que son utilizados internamente por los correos enviados para registrar eventos.
+
+#### `GET /track/opens/:email_event_id` - Seguimiento de Apertura
+
+*   **Descripción:** Registra un evento de apertura de correo electrónico. Este endpoint se incrusta como un píxel transparente en el cuerpo HTML de los correos.
+*   **Método:** `GET`
+*   **Autenticación:** No (maneja el `email_event_id` para identificar el evento).
+*   **Parámetros de Ruta:** `email_event_id` (entero, ID del evento de correo a registrar).
+*   **Respuesta:** Devuelve un GIF transparente 1x1.
+*   **Ejemplo `curl` (solo para fines ilustrativos; llamado automáticamente por clientes de correo):**
+    ```bash
+    curl -X GET http://localhost:3000/track/opens/123
+    ```
+
+#### `GET /track/clicks/:email_event_id` - Seguimiento de Clic
+
+*   **Descripción:** Registra un evento de clic en un enlace de correo electrónico y redirige al usuario a la URL original. Este endpoint se utiliza para reescribir los enlaces dentro de los correos.
+*   **Método:** `GET`
+*   **Autenticación:** No (maneja el `email_event_id` para identificar el evento).
+*   **Parámetros de Ruta:** `email_event_id` (entero, ID del evento de correo a registrar).
+*   **Respuesta:** Redirección 302 a la URL original.
+*   **Ejemplo `curl` (solo para fines ilustrativos; llamado automáticamente por clientes de correo):**
+    ```bash
+    curl -X GET http://localhost:3000/track/clicks/456
+    ```
+
+### 6. Envío de Correo Electrónico Individual (`/emails`)
 
 Permite enviar correos electrónicos individuales utilizando una plantilla definida.
 
-#### `POST /emails` - Enviar Correo con Plantilla
+#### `POST /emails` - Enviar Correo con Plantilla (Individual)
 
-*   **Descripción:** Encola un trabajo de envío de correo electrónico utilizando una plantilla especificada y datos dinámicos.
+*   **Descripción:** Encola un trabajo de envío de correo electrónico utilizando una plantilla especificada y datos dinámicos. Para un envío individual, se requiere que el `to` corresponda a un contacto existente y se debe proporcionar un `template_name` existente.
 *   **Método:** `POST`
 *   **Autenticación:** Sí
 *   **Cuerpo de la Solicitud (application/json):**
     | Parámetro       | Tipo     | Requerido | Descripción                                                                |
     | :-------------- | :------- | :-------- | :------------------------------------------------------------------------- |
-    | `to`            | `String` | Sí        | La dirección de correo electrónico del destinatario.                       |
-    | `template_name` | `String` | Sí        | El nombre de la plantilla de correo a utilizar (ej. `welcome_email`).     |
+    | `to`            | `String` | Sí        | La dirección de correo electrónico del destinatario (debe existir como `Contact`). |
+    | `template_name` | `String` | Sí        | El nombre de la plantilla de correo a utilizar (debe existir como `EmailTemplate`). |
     | `data`          | `Object` | No        | Un objeto JSON con pares clave-valor para interpolar en la plantilla.       |
 *   **Ejemplo de Solicitud:**
     ```json

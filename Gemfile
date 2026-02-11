@@ -41,6 +41,7 @@ gem "redis", ">= 4.0.1"
 # Motor de colas para envíos masivos (fuera de grupos específicos)
 gem 'sidekiq'
 gem 'pundit'
+gem 'nokogiri'
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem

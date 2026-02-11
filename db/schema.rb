@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_02_11_114557) do
+ActiveRecord::Schema[7.1].define(version: 2026_02_11_123349) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -54,6 +54,22 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_11_114557) do
     t.index ["email"], name: "index_contacts_on_email", unique: true
   end
 
+  create_table "email_events", force: :cascade do |t|
+    t.integer "event_type", null: false
+    t.bigint "contact_id", null: false
+    t.bigint "campaign_id"
+    t.bigint "email_template_id"
+    t.string "url"
+    t.string "ip_address"
+    t.text "user_agent"
+    t.datetime "timestamp", default: -> { "now()" }, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["campaign_id"], name: "index_email_events_on_campaign_id"
+    t.index ["contact_id"], name: "index_email_events_on_contact_id"
+    t.index ["email_template_id"], name: "index_email_events_on_email_template_id"
+  end
+
   create_table "email_templates", force: :cascade do |t|
     t.string "name"
     t.string "subject"
@@ -67,4 +83,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_11_114557) do
   add_foreign_key "campaigns", "email_templates"
   add_foreign_key "contact_list_memberships", "contact_lists"
   add_foreign_key "contact_list_memberships", "contacts"
+  add_foreign_key "email_events", "campaigns"
+  add_foreign_key "email_events", "contacts"
+  add_foreign_key "email_events", "email_templates"
 end
