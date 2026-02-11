@@ -6,6 +6,7 @@ one:
   status: 1
   email_template: one
   contact_list: one
+  user: one
 
 two:
   name: MyString
@@ -13,3 +14,4 @@ two:
   status: 1
   email_template: two
   contact_list: two
+  user: one

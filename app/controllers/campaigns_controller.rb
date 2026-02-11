@@ -3,8 +3,7 @@ class CampaignsController < ApplicationController
 
   # GET /campaigns
   def index
-    @campaigns = Campaign.all
-    authorize Campaign # authorize the collection
+    @campaigns = policy_scope(Campaign)
     render json: @campaigns.to_json(include: [:email_template, :contact_list])
   end
 
@@ -16,7 +15,7 @@ class CampaignsController < ApplicationController
 
   # POST /campaigns
   def create
-    @campaign = Campaign.new(campaign_params)
+    @campaign = Campaign.new(campaign_params.merge(user: current_user))
     authorize @campaign
 
     if @campaign.save
@@ -72,6 +71,7 @@ class CampaignsController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def campaign_params
-      params.require(:campaign).permit(:name, :subject, :status, :email_template_id, :contact_list_id)
+      params.require(:campaign).permit(:name, :subject, :status, :email_template_id, :contact_list_id, :user_id)
     end
+
 end

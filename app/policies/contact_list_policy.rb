@@ -1,10 +1,10 @@
 class ContactListPolicy < ApplicationPolicy
   def index?
-    user.present?
+    true # All authenticated users can view the index, scope will filter
   end
 
   def show?
-    user.present?
+    record.user_id == user.id
   end
 
   def create?
@@ -12,10 +12,24 @@ class ContactListPolicy < ApplicationPolicy
   end
 
   def update?
-    user.present?
+    record.user_id == user.id
   end
 
   def destroy?
-    user.present?
+    record.user_id == user.id
+  end
+
+  def add_contact?
+    record.user_id == user.id
+  end
+
+  def remove_contact?
+    record.user_id == user.id
+  end
+
+  class Scope < Scope
+    def resolve
+      scope.where(user_id: user.id)
+    end
   end
 end

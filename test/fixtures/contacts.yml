@@ -1,15 +1,17 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 one:
-  email: MyString
+  email: <%= "user1_#{SecureRandom.hex(4)}@example.com" %>
   first_name: MyString
   last_name: MyString
   status: 1
   custom_attributes: 
+  user: one
 
 two:
-  email: MyString
+  email: <%= "user2_#{SecureRandom.hex(4)}@example.com" %>
   first_name: MyString
   last_name: MyString
   status: 1
   custom_attributes: 
+  user: one

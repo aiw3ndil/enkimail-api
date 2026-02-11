@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_02_11_123349) do
+ActiveRecord::Schema[7.1].define(version: 2026_02_11_133629) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -22,8 +22,10 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_11_123349) do
     t.bigint "contact_list_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "user_id"
     t.index ["contact_list_id"], name: "index_campaigns_on_contact_list_id"
     t.index ["email_template_id"], name: "index_campaigns_on_email_template_id"
+    t.index ["user_id"], name: "index_campaigns_on_user_id"
   end
 
   create_table "contact_list_memberships", force: :cascade do |t|
@@ -40,7 +42,9 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_11_123349) do
     t.text "description"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "user_id"
     t.index ["name"], name: "index_contact_lists_on_name", unique: true
+    t.index ["user_id"], name: "index_contact_lists_on_user_id"
   end
 
   create_table "contacts", force: :cascade do |t|
@@ -51,7 +55,9 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_11_123349) do
     t.jsonb "custom_attributes"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "user_id"
     t.index ["email"], name: "index_contacts_on_email", unique: true
+    t.index ["user_id"], name: "index_contacts_on_user_id"
   end
 
   create_table "email_events", force: :cascade do |t|
@@ -77,13 +83,29 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_11_123349) do
     t.text "plain_text_body"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "user_id"
+    t.index ["user_id"], name: "index_email_templates_on_user_id"
+  end
+
+  create_table "users", force: :cascade do |t|
+    t.string "email", default: "", null: false
+    t.string "password_digest", default: "", null: false
+    t.string "api_key", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["api_key"], name: "index_users_on_api_key", unique: true
+    t.index ["email"], name: "index_users_on_email", unique: true
   end
 
   add_foreign_key "campaigns", "contact_lists"
   add_foreign_key "campaigns", "email_templates"
+  add_foreign_key "campaigns", "users"
   add_foreign_key "contact_list_memberships", "contact_lists"
   add_foreign_key "contact_list_memberships", "contacts"
+  add_foreign_key "contact_lists", "users"
+  add_foreign_key "contacts", "users"
   add_foreign_key "email_events", "campaigns"
   add_foreign_key "email_events", "contacts"
   add_foreign_key "email_events", "email_templates"
+  add_foreign_key "email_templates", "users"
 end

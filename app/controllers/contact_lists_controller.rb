@@ -3,8 +3,7 @@ class ContactListsController < ApplicationController
 
   # GET /contact_lists
   def index
-    @contact_lists = ContactList.all
-    authorize ContactList # authorize the collection
+    @contact_lists = policy_scope(ContactList)
     render json: @contact_lists
   end
 
@@ -16,7 +15,7 @@ class ContactListsController < ApplicationController
 
   # POST /contact_lists
   def create
-    @contact_list = ContactList.new(contact_list_params)
+    @contact_list = ContactList.new(contact_list_params.merge(user: current_user))
     authorize @contact_list
 
     if @contact_list.save
@@ -79,6 +78,6 @@ class ContactListsController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def contact_list_params
-      params.require(:contact_list).permit(:name, :description)
+      params.require(:contact_list).permit(:name, :description, :user_id)
     end
 end

@@ -5,9 +5,11 @@ one:
   subject: MyString
   body: MyText
   plain_text_body: MyText
+  user: one
 
 two:
   name: MyString
   subject: MyString
   body: MyText
   plain_text_body: MyText
+  user: one

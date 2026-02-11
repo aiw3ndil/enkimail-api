@@ -81,6 +81,7 @@ GEM
       securerandom (>= 0.3)
       tzinfo (~> 2.0)
     base64 (0.3.0)
+    bcrypt (3.1.21)
     benchmark (0.5.0)
     bigdecimal (4.0.1)
     bootsnap (1.22.0)
@@ -120,8 +121,7 @@ GEM
       net-smtp
     marcel (1.1.0)
     mini_mime (1.1.5)
-    minitest (6.0.1)
-      prism (~> 1.5)
+    minitest (5.18.1)
     msgpack (1.8.0)
     mutex_m (0.3.0)
     net-imap (0.6.2)
@@ -251,6 +251,7 @@ PLATFORMS
   x86_64-linux-musl
 
 DEPENDENCIES
+  bcrypt (~> 3.1.7)
   bootsnap
   debug
   nokogiri

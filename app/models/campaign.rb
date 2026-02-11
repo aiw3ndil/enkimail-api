@@ -1,6 +1,7 @@
 class Campaign < ApplicationRecord
   belongs_to :email_template
   belongs_to :contact_list
+  belongs_to :user
 
   enum status: { draft: 0, sent: 1, failed: 2 }
 

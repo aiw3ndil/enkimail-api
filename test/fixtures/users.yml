@@ -1,0 +1,10 @@
+# test/fixtures/users.yml
+one:
+  email: <%= "user1_#{SecureRandom.hex(4)}@example.com" %>
+  password_digest: <%= BCrypt::Password.create('password') %>
+  api_key: <%= SecureRandom.hex(16) %>
+
+two:
+  email: <%= "user2_#{SecureRandom.hex(4)}@example.com" %>
+  password_digest: <%= BCrypt::Password.create('password') %>
+  api_key: <%= SecureRandom.hex(16) %>

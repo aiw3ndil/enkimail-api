@@ -3,8 +3,7 @@ class EmailTemplatesController < ApplicationController
 
   # GET /email_templates
   def index
-    @email_templates = EmailTemplate.all
-    authorize @email_templates # authorize the collection
+    @email_templates = policy_scope(EmailTemplate)
     render json: @email_templates
   end
 
@@ -16,7 +15,7 @@ class EmailTemplatesController < ApplicationController
 
   # POST /email_templates
   def create
-    @email_template = EmailTemplate.new(email_template_params)
+    @email_template = EmailTemplate.new(email_template_params.merge(user: current_user))
     authorize @email_template
 
     if @email_template.save
@@ -53,6 +52,6 @@ class EmailTemplatesController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def email_template_params
-      params.require(:email_template).permit(:name, :subject, :body, :plain_text_body)
+      params.require(:email_template).permit(:name, :subject, :body, :plain_text_body, :user_id)
     end
 end

@@ -1,10 +1,10 @@
 class CampaignPolicy < ApplicationPolicy
   def index?
-    user.present?
+    true # All authenticated users can view the index, scope will filter
   end
 
   def show?
-    user.present?
+    record.user_id == user.id
   end
 
   def create?
@@ -12,14 +12,20 @@ class CampaignPolicy < ApplicationPolicy
   end
 
   def update?
-    user.present?
+    record.user_id == user.id
   end
 
   def destroy?
-    user.present?
+    record.user_id == user.id
   end
 
   def send?
-    user.present? # Only authenticated users can send campaigns
+    record.user_id == user.id # Only authenticated users can send campaigns
+  end
+
+  class Scope < Scope
+    def resolve
+      scope.where(user_id: user.id)
+    end
   end
 end
