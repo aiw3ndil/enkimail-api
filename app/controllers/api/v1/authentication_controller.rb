@@ -1,5 +1,5 @@
 class Api::V1::AuthenticationController < ApplicationController
-  skip_before_action :verify_authenticity_token, only: [:login, :register]
+
   skip_before_action :authenticate_request!, only: [:login, :register]
 
   def login
