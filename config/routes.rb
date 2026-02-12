@@ -1,4 +1,6 @@
 require 'sidekiq/web'
+require 'rack/session/cookie'
+Sidekiq::Web.use Rack::Session::Cookie, secret: Rails.application.credentials.secret_key_base, same_site: :lax, max_age: 86400
 
 Rails.application.routes.draw do
   # Tracking routes

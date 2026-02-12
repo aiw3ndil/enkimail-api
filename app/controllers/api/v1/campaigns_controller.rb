@@ -44,7 +44,16 @@ class Api::V1::CampaignsController < Api::V1::ApplicationController
 
   # POST /campaigns/:id/send
   def send_campaign
+    Rails.logger.info "--- Entering send_campaign action ---"
     authorize @campaign, :send? # Authorize with a specific Pundit action
+
+    Rails.logger.debug "DEBUG: campaign_params[:scheduled_at] = #{campaign_params[:scheduled_at].inspect}"
+    if campaign_params[:scheduled_at].present?
+      parsed_time = Time.parse(campaign_params[:scheduled_at])
+      Rails.logger.debug "DEBUG: parsed_time = #{parsed_time.inspect}"
+      Rails.logger.debug "DEBUG: Time.current = #{Time.current.inspect}"
+      Rails.logger.debug "DEBUG: parsed_time > Time.current = #{parsed_time > Time.current}"
+    end
 
     if @campaign.draft?
       if campaign_params[:scheduled_at].present? && Time.parse(campaign_params[:scheduled_at]) > Time.current

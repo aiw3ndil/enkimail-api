@@ -23,7 +23,7 @@ RUN bundle install
 COPY . .
 
 # 6. Exponemos el puerto de Rails
-EXPOSE 3000
+EXPOSE 3001
 
 # 7. Script de entrada para limpiar archivos temporales del servidor
 COPY entrypoint.sh /usr/bin/
