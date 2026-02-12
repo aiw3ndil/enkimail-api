@@ -1,4 +1,4 @@
-class Api::V1::CampaignsController < ApplicationController
+class Api::V1::CampaignsController < Api::V1::ApplicationController
   before_action :set_campaign, only: %i[ show update destroy send_campaign ]
 
   # GET /campaigns
@@ -19,7 +19,7 @@ class Api::V1::CampaignsController < ApplicationController
     authorize @campaign
 
     if @campaign.save
-      render json: @campaign.to_json(include: [:email_template, :contact_list]), status: :created, location: @campaign
+      render json: @campaign.to_json(include: [:email_template, :contact_list]), status: :created
     else
       render json: @campaign.errors, status: :unprocessable_entity
     end

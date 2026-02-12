@@ -1,4 +1,4 @@
-class Api::V1::ContactsController < ApplicationController
+class Api::V1::ContactsController < Api::V1::ApplicationController
   before_action :set_contact, only: %i[ show update destroy ]
 
   # GET /contacts
@@ -19,7 +19,7 @@ class Api::V1::ContactsController < ApplicationController
     authorize @contact
 
     if @contact.save
-      render json: @contact, status: :created, location: @contact
+      render json: @contact, status: :created
     else
       render json: @contact.errors, status: :unprocessable_entity
     end

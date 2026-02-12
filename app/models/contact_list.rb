@@ -4,4 +4,8 @@ class ContactList < ApplicationRecord
   has_many :contacts, through: :contact_list_memberships
 
   validates :name, presence: true, uniqueness: true
+
+  def contacts_count
+    contacts.count
+  end
 end

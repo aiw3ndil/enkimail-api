@@ -17,7 +17,7 @@ class CampaignSenderWorker
           user_email: contact.email,
           campaign_name: campaign.name,
           # ... any other general campaign/contact specific data
-        }.merge(contact.custom_attributes || {}) # Merge custom attributes if present
+        }.merge(contact.custom_attributes || {}).transform_keys(&:to_s) # Merge custom attributes if present and convert keys to strings
 
         EmailSenderWorker.perform_async(
           contact.email, # 'to' address

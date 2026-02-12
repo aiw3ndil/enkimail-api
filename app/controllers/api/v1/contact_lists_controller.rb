@@ -1,10 +1,10 @@
-class Api::V1::ContactListsController < ApplicationController
+class Api::V1::ContactListsController < Api::V1::ApplicationController
   before_action :set_contact_list, only: %i[ show update destroy add_contact remove_contact ]
 
   # GET /contact_lists
   def index
     @contact_lists = policy_scope(ContactList)
-    render json: @contact_lists
+    render json: @contact_lists.as_json(methods: :contacts_count)
   end
 
   # GET /contact_lists/1
@@ -19,7 +19,7 @@ class Api::V1::ContactListsController < ApplicationController
     authorize @contact_list
 
     if @contact_list.save
-      render json: @contact_list, status: :created, location: @contact_list
+      render json: @contact_list, status: :created
     else
       render json: @contact_list.errors, status: :unprocessable_entity
     end

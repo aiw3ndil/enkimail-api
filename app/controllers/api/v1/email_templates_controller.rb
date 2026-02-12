@@ -1,25 +1,25 @@
-class Api::V1::EmailTemplatesController < ApplicationController
+class Api::V1::EmailTemplatesController < Api::V1::ApplicationController
   before_action :set_email_template, only: %i[ show update destroy ]
 
   # GET /email_templates
   def index
-    @email_templates = Api::V1::EmailTemplatePolicy::Scope.new(current_user, EmailTemplate).resolve
+    @email_templates = policy_scope(EmailTemplate)
     render json: @email_templates
   end
 
   # GET /email_templates/1
   def show
-    authorize @email_template, policy_class: Api::V1::EmailTemplatePolicy
+    authorize @email_template
     render json: @email_template
   end
 
   # POST /email_templates
   def create
     @email_template = EmailTemplate.new(email_template_params.merge(user: current_user))
-    authorize @email_template, policy_class: Api::V1::EmailTemplatePolicy
+    authorize @email_template
 
     if @email_template.save
-      render json: @email_template, status: :created, location: api_v1_email_template_url(@email_template)
+      render json: @email_template, status: :created
     else
       render json: @email_template.errors, status: :unprocessable_entity
     end
@@ -27,7 +27,7 @@ class Api::V1::EmailTemplatesController < ApplicationController
 
   # PATCH/PUT /email_templates/1
   def update
-    authorize @email_template, policy_class: Api::V1::EmailTemplatePolicy
+    authorize @email_template
     if @email_template.update(email_template_params)
       render json: @email_template
     else
@@ -37,7 +37,7 @@ class Api::V1::EmailTemplatesController < ApplicationController
 
   # DELETE /email_templates/1
   def destroy
-    authorize @email_template, policy_class: Api::V1::EmailTemplatePolicy
+    authorize @email_template
     @email_template.destroy
     head :no_content
   end

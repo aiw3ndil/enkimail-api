@@ -1,3 +1,5 @@
+require 'sidekiq/web'
+
 Rails.application.routes.draw do
   # Tracking routes
   get '/track/opens/:email_event_id', to: 'tracking#open', as: :track_open
@@ -23,7 +25,7 @@ Rails.application.routes.draw do
       end
       resources :campaigns do
         member do
-          post :send
+          post :send_campaign
         end
       end
     end
@@ -37,4 +39,6 @@ Rails.application.routes.draw do
 
   # Defines the root path route ("/")
   # root "posts#index"
+
+  mount Sidekiq::Web => '/sidekiq'
 end
