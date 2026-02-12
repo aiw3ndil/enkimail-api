@@ -1,16 +1,14 @@
 # app/controllers/dashboard_controller.rb
 class DashboardController < ApplicationController
-  skip_before_action :authenticate_request!
-
   def index
-    total_campaigns = Campaign.count
-    total_contacts = Contact.count
-    total_sent = EmailEvent.where(event_type: :sent).count
+    total_campaigns = current_user.campaigns.count
+    total_contacts = current_user.contacts.count
+    total_sent = EmailEvent.where(contact_id: current_user.contact_ids, event_type: :sent).count
 
-    opens = EmailEvent.where(event_type: :open).count
-    clicks = EmailEvent.where(event_type: :click).count
-    bounces = EmailEvent.where(event_type: :bounce).count
-    spam_reports = EmailEvent.where(event_type: :spam_report).count
+    opens = EmailEvent.where(contact_id: current_user.contact_ids, event_type: :open).count
+    clicks = EmailEvent.where(contact_id: current_user.contact_ids, event_type: :click).count
+    bounces = EmailEvent.where(contact_id: current_user.contact_ids, event_type: :bounce).count
+    spam_reports = EmailEvent.where(contact_id: current_user.contact_ids, event_type: :spam_report).count
 
     render json: {
       total_campaigns: total_campaigns,
