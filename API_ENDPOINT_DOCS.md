@@ -15,6 +15,41 @@ Todas las solicitudes a los endpoints protegidos de esta API deben incluir un to
 
 ## Endpoints
 
+### 7. Transactional Emails (`/api/v1/transactional_emails`)
+
+High performance endpoint for sending transactional emails.
+
+#### `POST /api/v1/transactional_emails` - Send Transactional Email
+
+*   **Description:** Enqueues a transactional email for sending.
+*   **Method:** `POST`
+*   **Authentication:** Yes (Bearer Token)
+*   **Request Body (application/json):**
+    | Parameter | Type | Required | Description |
+    | :--- | :--- | :--- | :--- |
+    | `to` | `String` | Yes | Recipient email address. |
+    | `subject` | `String` | Yes | Email subject. |
+    | `body` | `String` | Yes (or `html_body`) | Plain text body. |
+    | `html_body` | `String` | Yes (or `body`) | HTML body. |
+    | `from` | `String` | No | Sender email address (defaults to system default). |
+*   **Success Response (202 Accepted):**
+    ```json
+    {
+      "message": "Email queued for sending",
+      "status": "queued"
+    }
+    ```
+*   **Error Response (422 Unprocessable Entity):**
+    ```json
+    {
+      "error": "Missing required parameters: to, subject, and body (or html_body)"
+    }
+    ```
+
+---
+
+## Endpoints
+
 ### 1. Gestión de Plantillas de Correo (`/email_templates`)
 
 Permite crear, leer, actualizar y eliminar plantillas de correo electrónico.

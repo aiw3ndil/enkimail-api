@@ -35,6 +35,7 @@ Rails.application.routes.draw do
           post :send_campaign
         end
       end
+      post '/transactional_emails', to: 'transactional_emails#create'
     end
   end
 
