@@ -3,23 +3,22 @@ class TrackingController < ApplicationController
   skip_before_action :verify_authenticity_token # CSRF token is not needed for tracking
 
   def open
-    # We expect params[:email_event_id] to be the ID of the EmailEvent for opening
-    email_event = EmailEvent.find_by(id: params[:email_event_id])
+    sent_event = EmailEvent.find_by(id: params[:email_event_id])
 
-    if email_event # Check if the event exists
-      # Update only if it's the first open or we want to log multiple opens
-      # For simplicity, we'll update only if it's an open event
-      # We could also track multiple opens by creating a new EmailEvent if the original event represents the 'initial send'
-      unless email_event.open? # Only update if the event hasn't been marked as opened yet
-        email_event.update(
-          ip_address: request.remote_ip,
-          user_agent: request.user_agent,
+    if sent_event&.sent?
+      # Check if an open event already exists for this contact and campaign
+      unless EmailEvent.exists?(contact_id: sent_event.contact_id, campaign_id: sent_event.campaign_id, event_type: :open)
+        EmailEvent.create(
+          contact_id: sent_event.contact_id,
+          campaign_id: sent_event.campaign_id,
+          email_template_id: sent_event.email_template_id,
           event_type: :open,
-          # Optionally update timestamp, but default is already set to NOW() on create
+          ip_address: request.remote_ip,
+          user_agent: request.user_agent
         )
       end
     else
-      Rails.logger.warn "TrackingController#open: EmailEvent with ID #{params[:email_event_id]} not found."
+      Rails.logger.warn "TrackingController#open: Sent EmailEvent with ID #{params[:email_event_id]} not found."
     end
 
     # Return a 1x1 transparent GIF

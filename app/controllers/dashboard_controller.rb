@@ -5,8 +5,7 @@ class DashboardController < ApplicationController
   def index
     total_campaigns = Campaign.count
     total_contacts = Contact.count
-    # This is a simplification. A more accurate way would be to count the number of emails actually sent.
-    total_sent = Campaign.all.sum { |c| c.contact_list.contacts.count }
+    total_sent = EmailEvent.where(event_type: :sent).count
 
     opens = EmailEvent.where(event_type: :open).count
     clicks = EmailEvent.where(event_type: :click).count

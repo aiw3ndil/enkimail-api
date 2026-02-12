@@ -20,33 +20,31 @@ class UserMailer < ApplicationMailer
     plain_text_body_content = template.plain_text_body ? render_erb_string(template.plain_text_body, data) : nil
 
     # --- Tracking Logic ---
-    # Temporarily removed for debugging.
-    # Original content:
-    # 1. Open Tracking Pixel
-    # open_event = EmailEvent.create!(
-    #   event_type: :open,
-    #   contact_id: contact.id,
-    #   campaign_id: campaign_id,
-    #   email_template_id: email_template_id
-    # )
-    # tracking_pixel = "<img src='#{track_open_url(email_event_id: open_event.id, host: Rails.application.config.action_mailer.default_url_options[:host], port: Rails.application.config.action_mailer.default_url_options[:port])}' width='1' height='1' alt=''>"
-    # html_body_content = html_body_content.gsub(/<\/body>/i, "#{tracking_pixel}</body>")
-    #
+    # 1. Sent Event & Open Tracking Pixel
+    sent_event = EmailEvent.create!(
+      event_type: :sent,
+      contact_id: contact.id,
+      campaign_id: campaign_id,
+      email_template_id: email_template_id
+    )
+    tracking_pixel = "<img src='#{track_open_url(email_event_id: sent_event.id, host: Rails.application.config.action_mailer.default_url_options[:host], port: Rails.application.config.action_mailer.default_url_options[:port])}' width='1' height='1' alt=''>"
+    html_body_content = html_body_content.gsub(/<\/body>/i, "#{tracking_pixel}</body>")
+
     # 2. Click Tracking Link Rewriting
-    # doc = Nokogiri::HTML(html_body_content)
-    # doc.css('a').each do |link|
-    #   original_url = link['href']
-    #   next unless original_url.present? && original_url.start_with?('http')
-    #   click_event = EmailEvent.create!(
-    #     event_type: :click,
-    #     contact_id: contact.id,
-    #     campaign_id: campaign_id,
-    #     email_template_id: email_template_id,
-    #     url: original_url
-    #   )
-    #   link['href'] = track_click_url(email_event_id: click_event.id, host: Rails.application.config.action_mailer.default_url_options[:host], port: Rails.application.config.action_mailer.default_url_options[:port])
-    # end
-    # html_body_content = doc.to_html
+    doc = Nokogiri::HTML(html_body_content)
+    doc.css('a').each do |link|
+      original_url = link['href']
+      next unless original_url.present? && original_url.start_with?('http')
+      click_event = EmailEvent.create!(
+        event_type: :click,
+        contact_id: contact.id,
+        campaign_id: campaign_id,
+        email_template_id: email_template_id,
+        url: original_url
+      )
+      link['href'] = track_click_url(email_event_id: click_event.id, host: Rails.application.config.action_mailer.default_url_options[:host], port: Rails.application.config.action_mailer.default_url_options[:port])
+    end
+    html_body_content = doc.to_html
     # --- End Tracking Logic ---
 
     mail(to: to, subject: rendered_subject) do |format|
