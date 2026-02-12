@@ -3,7 +3,7 @@ class EmailEvent < ApplicationRecord
   belongs_to :campaign, optional: true
   belongs_to :email_template, optional: true
 
-  enum event_type: { open: 0, click: 1 }
+  enum event_type: { open: 0, click: 1, bounce: 2, spam_report: 3 }
 
   validates :event_type, presence: true
   validates :contact, presence: true
