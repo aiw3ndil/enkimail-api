@@ -1,4 +1,4 @@
-class EmailTemplatePolicy < ApplicationPolicy
+class Api::V1::CampaignPolicy < Api::V1::ApplicationPolicy
   def index?
     true # All authenticated users can view the index, scope will filter
   end
@@ -17,6 +17,10 @@ class EmailTemplatePolicy < ApplicationPolicy
 
   def destroy?
     record.user_id == user.id
+  end
+
+  def send?
+    record.user_id == user.id # Only authenticated users can send campaigns
   end
 
   class Scope < Scope

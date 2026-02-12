@@ -3,7 +3,7 @@
 one:
   event_type: 1
   contact: one
-  campaign: one
+  campaign: sent
   email_template: one
   url: MyString
   ip_address: MyString
@@ -12,7 +12,7 @@ one:
 two:
   event_type: 1
   contact: two
-  campaign: two
+  campaign: draft
   email_template: two
   url: MyString
   ip_address: MyString

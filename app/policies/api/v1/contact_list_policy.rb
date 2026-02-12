@@ -1,4 +1,4 @@
-class CampaignPolicy < ApplicationPolicy
+class Api::V1::ContactListPolicy < Api::V1::ApplicationPolicy
   def index?
     true # All authenticated users can view the index, scope will filter
   end
@@ -19,8 +19,12 @@ class CampaignPolicy < ApplicationPolicy
     record.user_id == user.id
   end
 
-  def send?
-    record.user_id == user.id # Only authenticated users can send campaigns
+  def add_contact?
+    record.user_id == user.id
+  end
+
+  def remove_contact?
+    record.user_id == user.id
   end
 
   class Scope < Scope

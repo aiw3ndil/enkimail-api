@@ -429,7 +429,8 @@ Permite crear, leer, actualizar y eliminar campañas de email.
     | `campaign`          | `Object` | Sí        | Objeto que contiene los datos de la campaña.                              |
     | `campaign.name`     | `String` | Sí        | Nombre de la campaña.                                                     |
     | `campaign.subject`  | `String` | Sí        | Asunto del correo de la campaña.                                          |
-    | `campaign.status`   | `Integer`/`String` | No | Estado de la campaña (0: `draft`, 1: `sent`, 2: `failed`). Por defecto `draft` (0). |
+    | `campaign.status`   | `Integer`/`String` | No | Estado de la campaña (0: `draft`, 1: `scheduled`, 2: `sending`, 3: `sent`, 4: `failed`). Por defecto `draft` (0). |
+    | `campaign.scheduled_at` | `DateTime` | No | Fecha y hora de programación para el envío de la campaña. Si se proporciona, la campaña se programará. |
     | `campaign.email_template_id` | `Integer`| Sí | ID de la plantilla de correo a usar.                                       |
     | `campaign.contact_list_id` | `Integer`| Sí | ID de la lista de contactos a la que se enviará la campaña.                |
 *   **Ejemplo de Solicitud:**
@@ -536,23 +537,47 @@ Permite crear, leer, actualizar y eliminar campañas de email.
       -H 'Authorization: Bearer my_secret_api_token'
     ```
 
-#### `POST /campaigns/:id/send` - Enviar Campaña
+#### `POST /campaigns/:id/send` - Enviar o Programar Campaña
 
-*   **Descripción:** Encola una campaña para ser enviada a todos los contactos de su lista asociada. La campaña debe estar en estado `draft`.
+*   **Descripción:** Encola una campaña para ser enviada o la programa para una fecha futura. La campaña debe estar en estado `draft`.
 *   **Método:** `POST`
 *   **Autenticación:** Sí
 *   **Parámetros de Ruta:** `id` (entero, ID de la campaña).
-*   **Cuerpo de la Solicitud (application/json):** No requiere cuerpo.
-*   **Respuesta Exitosa (202 Accepted):**
+*   **Cuerpo de la Solicitud (application/json):**
+    | Parámetro           | Tipo     | Requerido | Descripción                                                                |
+    | :------------------ | :------- | :-------- | :------------------------------------------------------------------------- |
+    | `scheduled_at`      | `DateTime` | No        | Fecha y hora de programación para el envío. Si se omite o es una fecha pasada, la campaña se envía inmediatamente. |
+*   **Respuesta Exitosa (202 Accepted) - Campaña Programada:**
     ```json
     {
       "status": "success",
-      "message": "Campaign queued for sending",
+      "message": "Campaign scheduled for delivery",
+      "campaign": {
+        "id": 1,
+        "name": "Campaña Programada",
+        "subject": "¡Próximas Ofertas!",
+        "status": "scheduled",
+        "scheduled_at": "2026-03-01T10:00:00.000Z",
+        "email_template_id": 1,
+        "contact_list_id": 1,
+        "created_at": "...",
+        "updated_at": "...",
+        "email_template": {...},
+        "contact_list": {...}
+      }
+    }
+    ```
+*   **Respuesta Exitosa (202 Accepted) - Campaña Encolada para Envío Inmediato:**
+    ```json
+    {
+      "status": "success",
+      "message": "Campaign queued for immediate sending",
       "campaign": {
         "id": 1,
         "name": "Campaña de Lanzamiento",
         "subject": "¡Gran Lanzamiento de Nuestro Nuevo Producto!",
-        "status": "sent",
+        "status": "sending",
+        "scheduled_at": null,
         "email_template_id": 1,
         "contact_list_id": 1,
         "created_at": "...",
@@ -566,10 +591,20 @@ Permite crear, leer, actualizar y eliminar campañas de email.
     ```json
     {
       "status": "error",
-      "message": "Campaign must be in draft status to be sent"
+      "message": "Campaign must be in draft status to be sent or scheduled"
     }
     ```
-*   **Ejemplo `curl`:**
+*   **Ejemplo `curl` - Programar Campaña:**
+    ```bash
+    curl -X POST \
+      http://localhost:3000/campaigns/1/send \
+      -H 'Authorization: Bearer my_secret_api_token' \
+      -H 'Content-Type: application/json' \
+      -d '{
+        "scheduled_at": "2026-03-01T10:00:00.000Z"
+      }'
+    ```
+*   **Ejemplo `curl` - Enviar Campaña Inmediatamente:**
     ```bash
     curl -X POST \
       http://localhost:3000/campaigns/1/send \

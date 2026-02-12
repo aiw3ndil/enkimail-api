@@ -12,6 +12,13 @@ class ContactExportJobTest < ActiveSupport::TestCase
     @other_contact = @other_user.contacts.create!(email: 'other@example.com', first_name: 'Other', last_name: 'User', status: 'subscribed')
   end
 
+  teardown do
+    @user.contacts.destroy_all
+    @other_user.contacts.destroy_all
+    @user.destroy
+    @other_user.destroy
+  end
+
   test 'should export only the current user\'s contacts to a CSV file' do
     file_path = ContactExportJob.new.perform(@user.id)
 

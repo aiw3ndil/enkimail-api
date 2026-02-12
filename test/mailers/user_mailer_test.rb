@@ -7,7 +7,7 @@ class UserMailerTest < ActionMailer::TestCase
     template = user.email_templates.create!(name: "test_template", subject: "Hello", body: "Body")
     contact = user.contacts.create!(email: "recipient@example.com", status: "subscribed")
     
-    mail = UserMailer.send_generic_email("recipient@example.com", template.name, contact.id, { name: "Test User" })
+    mail = UserMailer.send_generic_email("recipient@example.com", template.name, contact.id, { name: "Test User" }, nil, template.id)
     
     assert_equal "Hello", mail.subject
     assert_equal ["recipient@example.com"], mail.to

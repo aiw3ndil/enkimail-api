@@ -1,4 +1,4 @@
-class CampaignsController < ApplicationController
+class Api::V1::CampaignsController < ApplicationController
   before_action :set_campaign, only: %i[ show update destroy send_campaign ]
 
   # GET /campaigns
@@ -45,14 +45,19 @@ class CampaignsController < ApplicationController
   # POST /campaigns/:id/send
   def send_campaign
     authorize @campaign, :send? # Authorize with a specific Pundit action
-    if @campaign.draft?
-      # Enqueue the CampaignSenderWorker (to be created next)
-      CampaignSenderWorker.perform_async(@campaign.id)
-      @campaign.update(status: :sent) # Mark as sent after enqueuing
 
-      render json: { status: 'success', message: 'Campaign queued for sending', campaign: @campaign.to_json(include: [:email_template, :contact_list]) }, status: :accepted
+    if @campaign.draft?
+      if campaign_params[:scheduled_at].present? && Time.parse(campaign_params[:scheduled_at]) > Time.current
+        @campaign.update(status: :scheduled, scheduled_at: campaign_params[:scheduled_at])
+        CampaignSenderWorker.perform_at(@campaign.scheduled_at, @campaign.id)
+        render json: { status: 'success', message: 'Campaign scheduled for delivery', campaign: @campaign.to_json(include: [:email_template, :contact_list]) }, status: :accepted
+      else
+        @campaign.update(status: :sending) # A new temporary status for immediately sending
+        CampaignSenderWorker.perform_async(@campaign.id)
+        render json: { status: 'success', message: 'Campaign queued for immediate sending', campaign: @campaign.to_json(include: [:email_template, :contact_list]) }, status: :accepted
+      end
     else
-      render json: { status: 'error', message: 'Campaign must be in draft status to be sent' }, status: :unprocessable_entity
+      render json: { status: 'error', message: 'Campaign must be in draft status to be sent or scheduled' }, status: :unprocessable_entity
     end
   rescue Pundit::NotAuthorizedError
     render json: { error: "You are not authorized to send this campaign." }, status: :forbidden
@@ -71,7 +76,7 @@ class CampaignsController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def campaign_params
-      params.require(:campaign).permit(:name, :subject, :status, :email_template_id, :contact_list_id, :user_id)
+      params.require(:campaign).permit(:name, :subject, :status, :email_template_id, :contact_list_id, :user_id, :scheduled_at)
     end
 
 end

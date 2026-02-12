@@ -1,4 +1,4 @@
-class ContactListsController < ApplicationController
+class Api::V1::ContactListsController < ApplicationController
   before_action :set_contact_list, only: %i[ show update destroy add_contact remove_contact ]
 
   # GET /contact_lists

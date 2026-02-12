@@ -1,5 +1,6 @@
 ENV["RAILS_ENV"] ||= "test"
 require_relative "../config/environment"
+require "sidekiq/testing" # Required for Sidekiq::Testing
 require "rails/test_help"
 
 module ActiveSupport
@@ -11,5 +12,15 @@ module ActiveSupport
     fixtures :all
 
     # Add more helper methods to be used by all tests here...
+    Rails.application.routes.default_url_options = { host: 'localhost', port: 3001 }
+
+    setup do
+      Sidekiq::Testing.fake!
+      Sidekiq::Worker.clear_all
+    end
+
+    teardown do
+      Sidekiq::Worker.clear_all
+    end
   end
 end

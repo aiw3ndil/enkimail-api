@@ -1,7 +1,10 @@
 class User < ApplicationRecord
   has_secure_password
 
-  has_many :contacts
+  validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
+  validates :password, presence: true, length: { minimum: 6 }, on: :create
+
+  has_many :contacts, dependent: :destroy
   has_many :contact_lists
   has_many :campaigns
   has_many :email_templates

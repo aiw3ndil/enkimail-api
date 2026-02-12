@@ -11,15 +11,17 @@ class ContactExportJob
     # Define headers for the CSV
     headers = ['email', 'first_name', 'last_name', 'status']
 
-    Tempfile.create(['contacts_export', '.csv']) do |file|
-      CSV(file, headers: true) do |csv|
-        csv << headers
-        contacts.each do |contact|
-          csv << contact.attributes.slice('email', 'first_name', 'last_name', 'status').values
-        end
+    # Create a unique filename for the export
+    filename = "contacts_export_#{user.id}_#{Time.current.to_i}.csv"
+    filepath = Rails.root.join('tmp', 'exports', filename)
+
+    CSV.open(filepath, "wb", headers: true) do |csv|
+      csv << headers
+      contacts.each do |contact|
+        csv << contact.attributes.slice('email', 'first_name', 'last_name', 'status').values
       end
-      # Return the file path for testing purposes
-      file.path
     end
+    # Return the file path for testing purposes
+    filepath.to_s
   end
 end

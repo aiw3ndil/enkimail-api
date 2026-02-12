@@ -1,17 +1,26 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
-one:
-  name: MyString
-  subject: MyString
-  status: 1
+draft:
+  name: Draft Campaign
+  subject: Draft Subject
+  status: draft
   email_template: one
   contact_list: one
   user: one
 
-two:
-  name: MyString
-  subject: MyString
-  status: 1
-  email_template: two
-  contact_list: two
+sent:
+  name: Sent Campaign
+  subject: Sent Subject
+  status: sent
+  email_template: one
+  contact_list: one
   user: one
+
+scheduled:
+  name: Scheduled Campaign
+  subject: Scheduled Subject
+  status: scheduled
+  email_template: one
+  contact_list: one
+  user: one
+  scheduled_at: 2026-03-01 10:00:00

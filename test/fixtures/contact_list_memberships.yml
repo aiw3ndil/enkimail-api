@@ -1,9 +1,9 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
-one:
+one_contact_one:
   contact: one
   contact_list: one
 
-two:
+one_contact_two:
   contact: two
-  contact_list: two
+  contact_list: one

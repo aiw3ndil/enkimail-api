@@ -3,28 +3,27 @@ Rails.application.routes.draw do
   get '/track/opens/:email_event_id', to: 'tracking#open', as: :track_open
   get '/track/clicks/:email_event_id', to: 'tracking#click', as: :track_click
   post '/emails', to: 'emails#create'
-  resources :email_templates
-  resources :contacts
-  resources :contact_lists do
-    member do
-      post :add_contact
-      delete :remove_contact
-    end
-  end
-  resources :campaigns do
-    member do
-      post :send
-    end
-  end
-
+  
   namespace :api do
     namespace :v1 do
       post '/login', to: 'authentication#login'
       post '/register', to: 'authentication#register'
+      resources :email_templates
       resources :contacts do
         collection do
           post :import
           get :export
+        end
+      end
+      resources :contact_lists do
+        member do
+          post :add_contact
+          delete :remove_contact
+        end
+      end
+      resources :campaigns do
+        member do
+          post :send
         end
       end
     end
