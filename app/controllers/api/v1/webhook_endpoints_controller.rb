@@ -1,6 +1,7 @@
 module Api
   module V1
     class WebhookEndpointsController < ApplicationController
+      before_action :ensure_pro_user
       before_action :set_webhook_endpoint, only: [:show, :update, :destroy]
 
       def index
@@ -40,6 +41,12 @@ module Api
         @webhook_endpoint = @current_user.webhook_endpoints.find(params[:id])
       rescue ActiveRecord::RecordNotFound
         render json: { error: 'Webhook endpoint not found' }, status: :not_found
+      end
+
+      def ensure_pro_user
+        unless @current_user.pro?
+          render json: { error: 'Webhook management is a Pro only feature. Upgrade your plan to use it.' }, status: :forbidden
+        end
       end
 
       def webhook_endpoint_params

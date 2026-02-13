@@ -58,6 +58,7 @@ Todas las solicitudes a los endpoints protegidos de esta API deben incluir un to
 | **Emails diarios** | 300 | 1,000 |
 | **Dominios** | 1 | 10 |
 | **Remitentes** | 1 | 15 |
+| **Webhooks** | No | Sí (Ilimitados) |
 
 ---
 
@@ -880,7 +881,10 @@ Permite enviar correos electrónicos individuales utilizando una plantilla defin
 
 ---
 
-## Webhooks
+## Webhooks (Pro Only)
+
+> [!IMPORTANT]
+> La gestión de Webhooks es una funcionalidad exclusiva del **Plan Pro**. Los usuarios del Plan Standard recibirán un error `403 Forbidden` al intentar acceder a estos endpoints.
 
 Manage webhook endpoints to receive real-time notifications for email events.
 
