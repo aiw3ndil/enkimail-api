@@ -1067,3 +1067,33 @@ Gestiona las direcciones de correo "From" autorizadas.
 *   **Descripción:** Elimina un remitente.
 *   **Método:** `DELETE`
 *   **Respuesta Exitosa (204 No Content)**
+
+---
+
+### 10. Suscripciones y Pagos (`/subscriptions`)
+
+Permite gestionar la actualización al plan Pro mediante Stripe Checkout.
+
+#### `POST /api/v1/subscriptions` - Crear Sesión de Pago
+*   **Descripción:** Genera una URL de Stripe Checkout para suscribirse al plan Pro ($2.99/mes).
+*   **Método:** `POST`
+*   **Body (JSON):**
+    ```json
+    {
+      "success_url": "https://tu-frontend.com/success",
+      "cancel_url": "https://tu-frontend.com/cancel"
+    }
+    ```
+*   **Respuesta Exitosa (200 OK):**
+    ```json
+    {
+      "checkout_url": "https://checkout.stripe.com/..."
+    }
+    ```
+
+#### `POST /webhooks/stripe` - Webhook de Stripe
+*   **Descripción:** (Uso interno de Stripe) Procesa eventos de pago para actualizar automáticamente el rol del usuario a `pro`.
+*   **Método:** `POST`
+*   **Seguridad:** Requiere firma válida de Stripe en el header `Stripe-Signature`.
+
+---

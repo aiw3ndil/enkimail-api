@@ -40,6 +40,7 @@ gem "redis", ">= 4.0.1"
 
 # Motor de colas para envíos masivos (fuera de grupos específicos)
 gem 'sidekiq'
+gem 'stripe'
 gem 'pundit'
 gem 'nokogiri'
 
