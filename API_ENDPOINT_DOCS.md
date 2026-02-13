@@ -963,3 +963,52 @@ Webhooks are sent as POST requests with a JSON body.
 2. Construct the signed string: `timestamp.payload_body`.
 3. Calculate HMAC-SHA256 using your endpoint's `secret`.
 4. Compare with `v1`.
+
+---
+
+### 8. Gestión de Dominios (`/domains`)
+
+Permite añadir dominios personalizados y verificar su propiedad mediante registros DNS (SPF, DKIM).
+
+#### `GET /api/v1/domains` - Listar Dominios
+*   **Descripción:** Devuelve la lista de dominios del usuario.
+*   **Método:** `GET`
+*   **Respuesta Exitosa:**
+    ```json
+    [
+      {
+        "id": 1,
+        "name": "example.com",
+        "status": "unverified",
+        "dkim_selector": "enki",
+        "dkim_public_key": "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQ...",
+        "dkim_record_name": "enki._domainkey",
+        "dkim_record_value": "v=DKIM1; k=rsa; p=MIGfMA0...",
+        "spf_record_value": "v=spf1 include:mail.enkimail.com ~all",
+        "verification_error": null
+      }
+    ]
+    ```
+
+#### `POST /api/v1/domains` - Añadir Dominio
+*   **Descripción:** Añade un nuevo dominio para enviar correos. Genera automáticamente las llaves DKIM.
+*   **Método:** `POST`
+*   **Body:** `{ "domain": { "name": "example.com" } }`
+*   **Respuesta Exitosa (201 Created):** Objeto `domain` creado con las instrucciones DNS.
+
+#### `POST /api/v1/domains/:id/verify` - Verificar Dominio
+*   **Descripción:** Realiza una consulta DNS inmediata para verificar los registros SPF y DKIM.
+*   **Método:** `POST`
+*   **Respuesta Exitosa:**
+    ```json
+    {
+      "message": "Verification queued",
+      "domain": { ... }
+    }
+    ```
+    *Nota: Si la verificación falla, el campo `verification_error` del objeto dominio contendrá los detalles.*
+
+#### `DELETE /api/v1/domains/:id` - Eliminar Dominio
+*   **Descripción:** Elimina un dominio.
+*   **Método:** `DELETE`
+*   **Respuesta Exitosa (204 No Content)**

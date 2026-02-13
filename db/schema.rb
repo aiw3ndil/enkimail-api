@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_02_13_084001) do
+ActiveRecord::Schema[7.1].define(version: 2026_02_13_084002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -59,6 +59,19 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_13_084001) do
     t.bigint "user_id"
     t.index ["email"], name: "index_contacts_on_email", unique: true
     t.index ["user_id"], name: "index_contacts_on_user_id"
+  end
+
+  create_table "domains", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "name"
+    t.integer "status"
+    t.text "dkim_private_key"
+    t.text "dkim_public_key"
+    t.string "dkim_selector"
+    t.string "verification_error"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_domains_on_user_id"
   end
 
   create_table "email_events", force: :cascade do |t|
@@ -118,6 +131,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_13_084001) do
   add_foreign_key "contact_list_memberships", "contacts"
   add_foreign_key "contact_lists", "users"
   add_foreign_key "contacts", "users"
+  add_foreign_key "domains", "users"
   add_foreign_key "email_events", "campaigns"
   add_foreign_key "email_events", "contacts"
   add_foreign_key "email_events", "email_templates"

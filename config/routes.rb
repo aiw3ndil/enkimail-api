@@ -38,6 +38,11 @@ Rails.application.routes.draw do
       resources :webhook_endpoints
       post '/transactional_emails', to: 'transactional_emails#create'
       get '/dashboard', to: 'dashboard#index'
+      resources :domains do
+        member do
+          post :verify
+        end
+      end
     end
   end
 
