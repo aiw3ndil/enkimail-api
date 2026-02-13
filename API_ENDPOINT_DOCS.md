@@ -295,6 +295,57 @@ Permite crear, leer, actualizar y eliminar contactos individuales.
       -H 'Authorization: Bearer my_secret_api_token'
     ```
 
+### 2.1 Importación y Exportación de Contactos
+
+#### `POST /contacts/import` - Importar Contactos (CSV)
+
+*   **Descripción:** Importa contactos masivamente desde un archivo CSV. El proceso se realiza en segundo plano.
+*   **Método:** `POST`
+*   **Autenticación:** Sí
+*   **Tipo de Contenido:** `multipart/form-data`
+*   **Parámetros:**
+    | Parámetro | Tipo | Requerido | Descripción |
+    | :--- | :--- | :--- | :--- |
+    | `file` | `File` | Sí | Archivo CSV con los contactos. |
+*   **Formato del CSV:**
+    El archivo CSV debe tener los siguientes encabezados (en la primera fila):
+    - `email` (Requerido)
+    - `first_name` (Opcional)
+    - `last_name` (Opcional)
+    - `status` (Opcional: `subscribed`, `unsubscribed`)
+
+    **Ejemplo de CSV:**
+    ```csv
+    email,first_name,last_name,status
+    juan@example.com,Juan,Perez,subscribed
+    maria@example.com,Maria,Gomez,subscribed
+    ```
+*   **Respuesta Exitosa (202 Accepted):**
+    ```json
+    {
+      "message": "Contact import has been queued."
+    }
+    ```
+*   **Ejemplo `curl`:**
+    ```bash
+    curl -X POST \
+      http://localhost:3000/contacts/import \
+      -H 'Authorization: Bearer my_secret_api_token' \
+      -F 'file=@/ruta/al/archivo/contactos.csv'
+    ```
+
+#### `GET /contacts/export` - Exportar Contactos
+
+*   **Descripción:** Inicia un trabajo en segundo plano para exportar todos los contactos. El usuario recibirá un enlace para descargar el archivo (próximamente).
+*   **Método:** `GET`
+*   **Autenticación:** Sí
+*   **Respuesta Exitosa (202 Accepted):**
+    ```json
+    {
+      "message": "Contact export has been queued. You will receive an email with the download link shortly."
+    }
+    ```
+
 ### 3. Gestión de Listas de Contactos (`/contact_lists`)
 
 Permite crear, leer, actualizar y eliminar listas de contactos, así como gestionar la membresía de contactos en dichas listas.

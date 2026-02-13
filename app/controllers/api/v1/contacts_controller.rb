@@ -56,7 +56,7 @@ class Api::V1::ContactsController < Api::V1::ApplicationController
   # GET /contacts/export
   def export
     authorize Contact # authorize the action against the Contact class
-    ContactExportJob.perform_async(current_user.id)
+    ContactExportJob.perform_later(current_user.id)
     render json: { message: 'Contact export has been queued. You will receive an email with the download link shortly.' }, status: :accepted
   end
 

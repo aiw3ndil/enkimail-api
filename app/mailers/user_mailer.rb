@@ -5,6 +5,15 @@ require 'ostruct'
 class UserMailer < ApplicationMailer
   include Rails.application.routes.url_helpers # For track_open_url and track_click_url
 
+  def export_contacts_email(user, csv_data)
+      attachments['contacts.csv'] = { mime_type: 'text/csv', content: csv_data }
+      mail(to: user.email, subject: 'Your EnkiMail Contacts Export') do |format|
+        format.html { render html: "<h1>Your contacts export is ready</h1><p>Please find the CSV file attached.</p>".html_safe }
+        format.text { render plain: "Your contacts export is ready. Please find the CSV file attached." }
+      end
+  end
+
+
   def send_generic_email(to, template_name, contact_id, data = {}, campaign_id = nil, email_template_id = nil)
     puts "Data in send_generic_email: #{data.inspect}"
     template = EmailTemplate.find_by!(name: template_name)
