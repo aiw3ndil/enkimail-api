@@ -1012,3 +1012,36 @@ Permite añadir dominios personalizados y verificar su propiedad mediante regist
 *   **Descripción:** Elimina un dominio.
 *   **Método:** `DELETE`
 *   **Respuesta Exitosa (204 No Content)**
+
+---
+
+### 9. Gestión de Remitentes (`/senders`)
+
+Gestiona las direcciones de correo "From" autorizadas.
+
+#### `GET /api/v1/senders` - Listar Remitentes
+*   **Descripción:** Lista los remitentes creados.
+*   **Método:** `GET`
+*   **Respuesta Exitosa:**
+    ```json
+    [
+      {
+        "id": 1,
+        "email": "hola@miempresa.com",
+        "name": "Soporte",
+        "domain_id": 1
+      }
+    ]
+    ```
+
+#### `POST /api/v1/senders` - Crear Remitente
+*   **Descripción:** Crea un nuevo remitente. El dominio del email debe coincidir con un Dominio verificado existente.
+*   **Método:** `POST`
+*   **Body:** `{ "sender": { "email": "ventas@miempresa.com", "name": "Ventas" } }`
+*   **Respuesta Exitosa (201 Created):** Objeto `sender`.
+*   **Error Común (422):** Si el dominio no está verificado o si se excede el límite del plan.
+
+#### `DELETE /api/v1/senders/:id` - Eliminar Remitente
+*   **Descripción:** Elimina un remitente.
+*   **Método:** `DELETE`
+*   **Respuesta Exitosa (204 No Content)**

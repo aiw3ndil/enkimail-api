@@ -25,6 +25,7 @@ class User < ApplicationRecord
   has_many :email_templates
   has_many :webhook_endpoints, dependent: :destroy
   has_many :domains, dependent: :destroy
+  has_many :senders, dependent: :destroy
 
   before_create :generate_api_key
 

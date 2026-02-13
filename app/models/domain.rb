@@ -4,6 +4,7 @@ class Domain < ApplicationRecord
   enum status: { unverified: 0, verified: 1, failed: 2 }
 
   validates :name, presence: true, uniqueness: true, format: { with: /\A[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}\z/i }
+  validate :check_domain_limit, on: :create
   
   before_create :generate_dkim_keys
   before_create :set_default_selector
@@ -34,5 +35,15 @@ class Domain < ApplicationRecord
   
   def spf_record_value
     "v=spf1 include:mail.enkimail.com ~all" 
+  end
+
+  private
+
+  def check_domain_limit
+    return if user.pro? # No limits for Pro
+
+    if user.domains.count >= 1
+      errors.add(:base, "Standard plan is limited to 1 Domain. Upgrade to Pro to add more.")
+    end
   end
 end

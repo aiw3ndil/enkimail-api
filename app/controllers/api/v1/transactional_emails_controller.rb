@@ -11,12 +11,31 @@ module Api
           return render json: { error: 'Daily email limit reached (300 emails/day). Upgrade to Pro for unlimited emails.' }, status: :too_many_requests
         end
 
+        # Validate Sender
+        from_email = params[:from] || @current_user.email # Fallback to user email if not provided? Or system default? 
+        # Actually user email might not be verified. Let's enforce param or use a default verified one if exists?
+        # The prompt says: "When a user wants to send a campaign... Is the Sender existing?"
+        
+        unless from_email.present?
+           return render json: { error: 'Missing required parameter: from' }, status: :unprocessable_entity
+        end
+
+        sender = @current_user.senders.find_by(email: from_email)
+        
+        unless sender
+          return render json: { error: "Sender '#{from_email}' not found. Please add it to your Senders list first." }, status: :unprocessable_entity
+        end
+
+        unless sender.domain&.verified?
+          return render json: { error: "Domain '#{sender.domain&.name}' is not verified. Please verify SPF/DKIM records." }, status: :unprocessable_entity
+        end
+
         email_params = {
           to: params[:to],
           subject: params[:subject],
           body: params[:body],
           html_body: params[:html_body],
-          from: params[:from]
+          from: from_email
         }
 
         email_params[:user_id] = @current_user.id

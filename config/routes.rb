@@ -43,6 +43,7 @@ Rails.application.routes.draw do
           post :verify
         end
       end
+      resources :senders
     end
   end
 
