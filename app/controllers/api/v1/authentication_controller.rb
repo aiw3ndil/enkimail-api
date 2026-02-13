@@ -11,6 +11,10 @@ class Api::V1::AuthenticationController < ApplicationController
       render json: { error: 'Invalid credentials' }, status: :unauthorized
     end
   end
+  
+  def me
+    render json: { api_key: current_user.api_key, email: current_user.email, role: current_user.role }, status: :ok
+  end
 
   def register
     user = User.new(user_params)

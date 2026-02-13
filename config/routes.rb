@@ -17,6 +17,7 @@ Rails.application.routes.draw do
     namespace :v1 do
       post '/login', to: 'authentication#login'
       post '/register', to: 'authentication#register'
+      get '/me', to: 'authentication#me'
       resources :email_templates
       resources :contacts do
         collection do

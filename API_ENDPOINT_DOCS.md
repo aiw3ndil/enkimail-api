@@ -26,6 +26,17 @@ Todas las solicitudes a los endpoints protegidos de esta API deben incluir un to
     }
     ```
 
+#### `GET /api/v1/me`
+*   **Descripción:** Devuelve la información del usuario actual basada en la API Key.
+*   **Respuesta Exitosa:**
+    ```json
+    {
+      "api_key": "...",
+      "email": "user@example.com",
+      "role": "standard"
+    }
+    ```
+
 #### `POST /api/v1/authentication/register`
 *   **Descripción:** Registra un nuevo usuario.
 *   **Respuesta Exitosa:**
