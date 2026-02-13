@@ -9,6 +9,12 @@ class SendTransactionalEmailJob < ApplicationJob
     body = email_params['body'] || email_params[:body]
     html_body = email_params['html_body'] || email_params[:html_body]
     from = email_params['from'] || email_params[:from]
+    user_id = email_params['user_id'] || email_params[:user_id]
+
+    user = User.find_by(id: user_id)
+    return unless user
+
+    contact = Contact.find_or_create_by(email: to, user: user)
 
     TransactionalMailer.send_email(
       to: to,
@@ -17,5 +23,13 @@ class SendTransactionalEmailJob < ApplicationJob
       html_body: html_body,
       from: from
     ).deliver_now
+
+    # Create 'sent' event which triggers webhook dispatcher via callback
+    EmailEvent.create!(
+      contact: contact,
+      event_type: :sent,
+      email_template: nil, # or pass if available
+      campaign: nil
+    )
   end
 end

@@ -8,6 +8,7 @@ class User < ApplicationRecord
   has_many :contact_lists
   has_many :campaigns
   has_many :email_templates
+  has_many :webhook_endpoints, dependent: :destroy
 
   before_create :generate_api_key
 

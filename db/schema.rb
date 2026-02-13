@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_02_12_115330) do
+ActiveRecord::Schema[7.1].define(version: 2026_02_13_084000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -99,6 +99,17 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_12_115330) do
     t.index ["email"], name: "index_users_on_email", unique: true
   end
 
+  create_table "webhook_endpoints", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "url", null: false
+    t.jsonb "events", default: []
+    t.boolean "active", default: true
+    t.string "secret"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_webhook_endpoints_on_user_id"
+  end
+
   add_foreign_key "campaigns", "contact_lists"
   add_foreign_key "campaigns", "email_templates"
   add_foreign_key "campaigns", "users"
@@ -110,4 +121,5 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_12_115330) do
   add_foreign_key "email_events", "contacts"
   add_foreign_key "email_events", "email_templates"
   add_foreign_key "email_templates", "users"
+  add_foreign_key "webhook_endpoints", "users"
 end

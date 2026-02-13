@@ -771,3 +771,111 @@ Permite enviar correos electrónicos individuales utilizando una plantilla defin
       "message": "Mensaje de error interno del servidor"
     }
     ```
+
+---
+
+## Webhooks
+
+Manage webhook endpoints to receive real-time notifications for email events.
+
+### 1. List Webhook Endpoints
+
+**Endpoint:** `GET /api/v1/webhook_endpoints`
+
+**Headers:**
+- `Authorization`: `Bearer <API_KEY>`
+
+**Response:**
+```json
+[
+  {
+    "id": 1,
+    "url": "https://example.com/webhooks",
+    "events": ["sent", "open", "click"],
+    "active": true,
+    "created_at": "2023-10-27T10:00:00.000Z",
+    "updated_at": "2023-10-27T10:00:00.000Z"
+  }
+]
+```
+
+### 2. Create Webhook Endpoint
+
+**Endpoint:** `POST /api/v1/webhook_endpoints`
+
+**Headers:**
+- `Authorization`: `Bearer <API_KEY>`
+- `Content-Type`: `application/json`
+
+**Body:**
+```json
+{
+  "webhook_endpoint": {
+    "url": "https://example.com/webhooks",
+    "events": ["sent", "open", "click", "bounce", "spam_report"]
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "id": 1,
+  "url": "https://example.com/webhooks",
+  "events": ["sent", "open", "click", "bounce", "spam_report"],
+  "active": true,
+  "secret": "a1b2c3d4e5f6...",
+  "created_at": "...",
+  "updated_at": "..."
+}
+```
+*Note: Store the `secret` securely. It is used to sign webhook payloads.*
+
+### 3. Update Webhook Endpoint
+
+**Endpoint:** `PUT /api/v1/webhook_endpoints/:id`
+
+**Body:**
+```json
+{
+  "webhook_endpoint": {
+    "active": false,
+    "events": ["bounce", "spam_report"]
+  }
+}
+```
+
+### 4. Delete Webhook Endpoint
+
+**Endpoint:** `DELETE /api/v1/webhook_endpoints/:id`
+
+---
+
+### Webhook Payloads
+
+Webhooks are sent as POST requests with a JSON body.
+
+**Headers:**
+- `X-EnkiMail-Signature`: `t=1698400000,v1=hwOi...` (HMAC-SHA256 signature)
+- `Content-Type`: `application/json`
+
+**Body Example (Sent Event):**
+```json
+{
+  "event": "sent",
+  "timestamp": 1698400000,
+  "email": "user@example.com",
+  "campaign_id": null,
+  "template_id": null,
+  "url": null,
+  "ip": null,
+  "user_agent": null,
+  "details": null
+}
+```
+
+**Verifying Signatures:**
+1. Extract `t` (timestamp) and `v1` (signature) from `X-EnkiMail-Signature`.
+2. Construct the signed string: `timestamp.payload_body`.
+3. Calculate HMAC-SHA256 using your endpoint's `secret`.
+4. Compare with `v1`.

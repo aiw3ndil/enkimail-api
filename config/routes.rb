@@ -35,6 +35,7 @@ Rails.application.routes.draw do
           post :send_campaign
         end
       end
+      resources :webhook_endpoints
       post '/transactional_emails', to: 'transactional_emails#create'
       get '/dashboard', to: 'dashboard#index'
     end

@@ -15,6 +15,7 @@ module Api
           from: params[:from]
         }
 
+        email_params[:user_id] = @current_user.id
         SendTransactionalEmailJob.perform_later(email_params)
 
         render json: { message: 'Email queued for sending', status: 'queued' }, status: :accepted
