@@ -7,7 +7,7 @@ class User < ApplicationRecord
   enum role: { standard: 0, pro: 1 }
 
   def daily_email_limit
-    pro? ? Float::INFINITY : 300
+    pro? ? 1000 : 300
   end
 
   def can_send_emails?

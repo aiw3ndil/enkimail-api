@@ -50,6 +50,17 @@ Todas las solicitudes a los endpoints protegidos de esta API deben incluir un to
 
 ---
 
+## Planes y Precios
+
+| Característica | Gratis (Standard) | Pro |
+| :--- | :--- | :--- |
+| **Precio** | $0 | $2.99 / mes |
+| **Emails diarios** | 300 | 1,000 |
+| **Dominios** | 1 | 10 |
+| **Remitentes** | 1 | 15 |
+
+---
+
 ## Endpoints
 
 ### 7. Transactional Emails (`/api/v1/transactional_emails`)
@@ -86,7 +97,7 @@ High performance endpoint for sending transactional emails.
 *   **Error Response (429 Too Many Requests):**
     ```json
     {
-      "error": "Daily email limit reached (300 emails/day). Upgrade to Pro for unlimited emails."
+      "error": "Daily email limit reached (300 emails/day). Upgrade your plan to increase your limit."
     }
     ```
 

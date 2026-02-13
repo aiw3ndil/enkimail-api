@@ -8,7 +8,7 @@ module Api
         end
 
         unless @current_user.can_send_emails?
-          return render json: { error: 'Daily email limit reached (300 emails/day). Upgrade to Pro for unlimited emails.' }, status: :too_many_requests
+          return render json: { error: "Daily email limit reached (#{@current_user.daily_email_limit} emails/day). Upgrade your plan to increase your limit." }, status: :too_many_requests
         end
 
         # Validate Sender

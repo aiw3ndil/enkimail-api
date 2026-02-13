@@ -25,10 +25,9 @@ class Sender < ApplicationRecord
   end
 
   def check_sender_limit
-    return if user.pro? # No limits for Pro
-
-    if user.senders.count >= 1
-      errors.add(:base, "Standard plan is limited to 1 Sender identity. Upgrade to Pro to add more.")
+    limit = user.pro? ? 15 : 1
+    if user.senders.count >= limit
+      errors.add(:base, "#{user.role.capitalize} plan is limited to #{limit} Sender identity(ies). Upgrade to Pro to add more.")
     end
   end
 end

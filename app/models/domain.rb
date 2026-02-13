@@ -40,10 +40,9 @@ class Domain < ApplicationRecord
   private
 
   def check_domain_limit
-    return if user.pro? # No limits for Pro
-
-    if user.domains.count >= 1
-      errors.add(:base, "Standard plan is limited to 1 Domain. Upgrade to Pro to add more.")
+    limit = user.pro? ? 10 : 1
+    if user.domains.count >= limit
+      errors.add(:base, "#{user.role.capitalize} plan is limited to #{limit} Domain(s). Upgrade to Pro to add more.")
     end
   end
 end
