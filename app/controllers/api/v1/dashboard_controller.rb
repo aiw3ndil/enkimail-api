@@ -24,6 +24,16 @@ module Api
         bounce_rate = @total_sent > 0 ? (@bounces.to_f / @total_sent * 100).round(2) : 0.0
         spam_report_rate = @total_sent > 0 ? (@spam_reports.to_f / @total_sent * 100).round(2) : 0.0
 
+        # Time series data for charts (last 30 days)
+        @time_series = (30.days.ago.to_date..Date.current).map do |date|
+          {
+            date: date.strftime('%b %d'),
+            sent: email_events.where(event_type: :sent, created_at: date.all_day).count,
+            opens: email_events.where(event_type: :open, created_at: date.all_day).count,
+            clicks: email_events.where(event_type: :click, created_at: date.all_day).count
+          }
+        end
+
         render json: {
           total_campaigns: @total_campaigns,
           total_contacts: @total_contacts,
@@ -39,7 +49,8 @@ module Api
             clicks: @clicks,
             bounces: @bounces,
             spam_reports: @spam_reports
-          }
+          },
+          time_series: @time_series
         }
       end
     end
