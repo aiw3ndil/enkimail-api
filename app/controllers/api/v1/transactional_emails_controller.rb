@@ -7,6 +7,10 @@ module Api
           return render json: { error: 'Missing required parameters: to, subject, and body (or html_body)' }, status: :unprocessable_entity
         end
 
+        unless @current_user.can_send_emails?
+          return render json: { error: 'Daily email limit reached (300 emails/day). Upgrade to Pro for unlimited emails.' }, status: :too_many_requests
+        end
+
         email_params = {
           to: params[:to],
           subject: params[:subject],

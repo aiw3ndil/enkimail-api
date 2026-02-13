@@ -6,7 +6,7 @@ class Api::V1::AuthenticationController < ApplicationController
     user = User.find_by(email: params[:email])
 
     if user&.authenticate(params[:password])
-      render json: { api_key: user.api_key, email: user.email }, status: :ok
+      render json: { api_key: user.api_key, email: user.email, role: user.role }, status: :ok
     else
       render json: { error: 'Invalid credentials' }, status: :unauthorized
     end
@@ -17,7 +17,7 @@ class Api::V1::AuthenticationController < ApplicationController
     authorize user
 
     if user.save
-      render json: { api_key: user.api_key, email: user.email }, status: :created
+      render json: { api_key: user.api_key, email: user.email, role: user.role }, status: :created
     else
       render json: user.errors, status: :unprocessable_entity
     end

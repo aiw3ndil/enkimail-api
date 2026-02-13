@@ -4,12 +4,38 @@ Este documento describe cómo interactuar con los endpoints de la API de Enkimai
 
 ---
 
+---
+
 ## Autenticación
 
-Todas las solicitudes a los endpoints protegidos de esta API deben incluir un token de autorización en el encabezado `Authorization`. Actualmente, la autenticación se realiza mediante un token fijo (hardcoded) para propósitos de desarrollo.
+Todas las solicitudes a los endpoints protegidos de esta API deben incluir un token de autorización en el encabezado `Authorization`.
 
 **Encabezado de la solicitud:**
-`Authorization: Bearer my_secret_api_token`
+`Authorization: Bearer <API_KEY>`
+
+### Endpoints de Autenticación
+
+#### `POST /api/v1/authentication/login`
+*   **Descripción:** Inicia sesión y devuelve el token de API.
+*   **Respuesta Exitosa:**
+    ```json
+    {
+      "api_key": "...",
+      "email": "user@example.com",
+      "role": "standard" // o "pro"
+    }
+    ```
+
+#### `POST /api/v1/authentication/register`
+*   **Descripción:** Registra un nuevo usuario.
+*   **Respuesta Exitosa:**
+    ```json
+    {
+      "api_key": "...",
+      "email": "user@example.com",
+      "role": "standard"
+    }
+    ```
 
 ---
 
@@ -39,10 +65,17 @@ High performance endpoint for sending transactional emails.
       "status": "queued"
     }
     ```
+    ```
 *   **Error Response (422 Unprocessable Entity):**
     ```json
     {
       "error": "Missing required parameters: to, subject, and body (or html_body)"
+    }
+    ```
+*   **Error Response (429 Too Many Requests):**
+    ```json
+    {
+      "error": "Daily email limit reached (300 emails/day). Upgrade to Pro for unlimited emails."
     }
     ```
 
