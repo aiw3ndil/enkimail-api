@@ -28,14 +28,17 @@ services:
   # Servidor de correo Postfix
 postfix:
     image: mwader/postfix-relay
-    container_name: postfix  # <--- Esto asegura que Rails siempre lo encuentre por este nombre
+    networks:
+      - default
     environment:
       POSTFIX_myhostname: mail.enkimail.com
       POSTFIX_mynetworks: 0.0.0.0/0
       POSTFIX_smtpd_relay_restrictions: permit
-    volumes:
-      - postfix_queue:/var/spool/postfix
-    restart: alway
+    restart: always
+
+networks:
+  default:
+    external: false
 
 # Coolify gestionará los volúmenes definidos aquí.
 volumes:
