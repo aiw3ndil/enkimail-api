@@ -11,7 +11,7 @@ services:
       SMTP_DOMAIN: enkimail.com
       TZ: Europe/Helsinki
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3001/up"]
+      test: [ "CMD", "curl", "-f", "http://localhost:3001/up" ]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -48,10 +48,10 @@ services:
       # Redes seguras para permitir el relay desde los otros contenedores.
       POSTFIX_mynetworks: 172.16.0.0/12, 192.168.0.0/16, 10.0.0.0/8, fd00::/8
       # --- Configuración DKIM ---
-      # Elige un "selector" para tu clave DKIM. "mail" es un valor común.
+      # Correct variable for DKIM generation
+      OPENDKIM_DOMAINS: enkimail.com
+      # OPENDKIM_selector is likely ignored or used globally, but we keep it for now as it doesn't hurt.
       OPENDKIM_selector: mail
-      # Tu dominio. Postfix generará una clave para este dominio.
-      OPENDKIM_domain: enkimail.com
     restart: always
 
 networks:
