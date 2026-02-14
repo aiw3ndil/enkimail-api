@@ -35,11 +35,11 @@ services:
     networks:
       - enkimail-net
     # Usar un script de entrada personalizado para forzar la configuración de DNS
-    entrypoint: /usr/local/bin/postfix-entrypoint.sh
+    entrypoint: /tmp/postfix-entrypoint.sh
     command: /opt/run.sh
     volumes:
-      # Montar el script de entrada personalizado
-      - ./postfix-entrypoint.sh:/usr/local/bin/postfix-entrypoint.sh
+      # Montar el script de entrada en /tmp, una ruta menos restrictiva
+      - ./postfix-entrypoint.sh:/tmp/postfix-entrypoint.sh
       # Volumen para la cola de correos de Postfix
       - postfix_queue:/var/spool/postfix
     environment:
