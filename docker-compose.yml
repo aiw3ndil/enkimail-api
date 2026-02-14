@@ -1,26 +1,4 @@
 services:
-  # Base de datos
-  db:
-    image: postgres:15-alpine
-    container_name: enkimail-db
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    environment:
-      POSTGRES_PASSWORD: password
-      TZ: Europe/Helsinki
-    command: postgres -c timezone=Europe/Helsinki
-    restart: always
-
-  # Redis
-  redis:
-    image: redis:7-alpine
-    container_name: enkimail-redis
-    ports:
-      - "6379:6379"
-    environment:
-      TZ: Europe/Helsinki
-    restart: always
-
   # Aplicación Rails
   web:
     build: .

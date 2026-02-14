@@ -1,6 +1,6 @@
 class TrackingController < ApplicationController
-  skip_before_action :authenticate_request! # Tracking does not require authentication
-  skip_before_action :verify_authenticity_token # CSRF token is not needed for tracking
+  skip_before_action :authenticate_request!, raise: false
+  skip_before_action :verify_authenticity_token, raise: false
 
   def open
     sent_event = EmailEvent.find_by(id: params[:email_event_id])
