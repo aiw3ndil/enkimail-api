@@ -67,18 +67,19 @@ Rails.application.configure do
 
   config.action_mailer.perform_caching = false
   config.action_mailer.delivery_method = :smtp
-    config.action_mailer.perform_deliveries = true
-    config.action_mailer.raise_delivery_errors = true
-    config.action_mailer.default_url_options = { host: "api.enkimail.com" }
+  config.action_mailer.perform_deliveries = true
+  config.action_mailer.raise_delivery_errors = true
+  config.action_mailer.default_url_options = { host: "api.enkimail.com" }
 
-    config.action_mailer.smtp_settings = {
-      address:              ENV.fetch("SMTP_ADDRESS", "postfix"),
-      port:                 ENV.fetch("SMTP_PORT", 25).to_i,
-      domain:               ENV.fetch("SMTP_DOMAIN", "enkimail.com"),
-      authentication:       nil,    # Eliminamos el error 503 al no enviar credenciales
-      enable_starttls_auto: false,
-      open_timeout:         10, # Segundos para abrir la conexión
-      read_timeout:         10  # Segundos para esperar respuesta   # Para conexiones internas por el puerto 25
+  config.action_mailer.smtp_settings = {
+    address:              "postfix",
+    port:                 25,
+    domain:               "enkimail.com",
+    authentication:       nil,         # Sin usuario ni contraseña
+    enable_starttls_auto: false,       # ¡CRÍTICO! Desactiva el intento de TLS
+    openssl_verify_mode:  'none',      # Ignora certificados (no hay SSL interno)
+    open_timeout:         5,
+    read_timeout:         5
     }
 
   # Ignore bad email addresses and do not raise email delivery errors.
