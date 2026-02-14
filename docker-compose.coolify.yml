@@ -6,6 +6,7 @@ services:
     environment:
       SMTP_ADDRESS: postfix
       SMTP_PORT: 25
+      SMTP_DOMAIN: enkimail.com
       TZ: Europe/Helsinki
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3001/up"]
@@ -21,6 +22,7 @@ services:
     environment:
       SMTP_ADDRESS: postfix
       SMTP_PORT: 25
+      SMTP_DOMAIN: enkimail.com
       TZ: Europe/Helsinki
 
   # Servidor de correo Postfix
@@ -29,6 +31,8 @@ services:
     environment:
       POSTFIX_myhostname: mail.enkimail.com
       POSTFIX_mynetworks: 0.0.0.0/0
+      POSTFIX_smtpd_relay_restrictions: permit_mynetworks,permit_sasl_authenticated,defer_unauth_destination
+      POSTFIX_smtpd_recipient_restrictions: permit_mynetworks,permit_sasl_authenticated,reject_unauth_destination
     volumes:
       - postfix_queue:/var/spool/postfix
     restart: always
