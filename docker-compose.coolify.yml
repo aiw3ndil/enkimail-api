@@ -38,7 +38,7 @@ services:
       # Define el nombre de host de correo. Debe ser un dominio que controles.
       POSTFIX_myhostname: mail.enkimail.com
       # Redes seguras por defecto para Docker. Evita que el relay sea abierto.
-      POSTFIX_mynetworks: 172.16.0.0/12, 192.168.0.0/16
+      POSTFIX_mynetworks: 172.16.0.0/12, 192.168.0.0/16, 10.0.0.0/8
     volumes:
       - postfix_queue:/var/spool/postfix
     restart: always
