@@ -36,6 +36,8 @@ services:
     environment:
       REDIS_URL: redis://redis:6379/1
       DATABASE_URL: postgres://postgres:password@db:5432/enkimail_development
+      SMTP_ADDRESS: postfix
+      SMTP_PORT: 25
       TZ: Europe/Helsinki
 
   # Sidekiq
@@ -51,18 +53,27 @@ services:
     environment:
       REDIS_URL: redis://redis:6379/1
       DATABASE_URL: postgres://postgres:password@db:5432/enkimail_development
+      SMTP_ADDRESS: postfix
+      SMTP_PORT: 25
       TZ: Europe/Helsinki
 
-  # Mailpit
-  mailpit:
-    image: axllent/mailpit
-    container_name: enkimail-mailpit
-    ports:
-      - "8025:8025"
+  # Servidor de correo Postfix (reemplaza a Mailpit)
+  postfix:
+    image: mwader/postfix-relay
+    container_name: enkimail-postfix
     environment:
-      MP_UI_AUTH: admin:805473
-      TZ: Europe/Helsinki
+      # --------------------------------------------------------------------
+      # IMPORTANTE: Cambia 'enkimail.test' por tu dominio real.
+      # Este dominio debe tener registros DNS (MX, SPF, DKIM) configurados
+      # correctamente para que los correos no sean marcados como spam.
+      # --------------------------------------------------------------------
+      POSTFIX_myhostname: enkimail.test
+      # Permite que otros contenedores en la red interna de Docker envíen correos.
+      POSTFIX_mynetworks: 172.16.0.0/12, 192.168.0.0/16
+    volumes:
+      - postfix_queue:/var/spool/postfix
     restart: always
 
 volumes:
   postgres_data:
+  postfix_queue:

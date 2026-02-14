@@ -83,6 +83,55 @@ Once running:
 *   Mailpit (for viewing sent emails) will be accessible at `http://localhost:8025`.
 *   Sidekiq Web UI (for monitoring background jobs) might be configured at `http://localhost:3000/sidekiq` if enabled in `config/routes.rb` (currently not configured, but a common practice).
 
+## Deployment
+
+This project is optimized for deployment on [Coolify](https://coolify.io), a self-hostable PaaS.
+
+### Deploying on Coolify
+
+A `docker-compose.coolify.yml` file is included for easy deployment. It's pre-configured to build the `web` and `sidekiq` services.
+
+**1. Prerequisites:**
+*   Your project is pushed to a Git repository (GitHub, GitLab, etc.).
+*   You have a running Coolify instance.
+*   The file `docker-compose.coolify.yml` is committed to your repository.
+
+**2. Database Setup on Coolify:**
+Before creating the application, set up the necessary managed databases in your Coolify instance:
+*   Create a **PostgreSQL** database.
+*   Create a **Redis** database.
+
+**3. Application Setup on Coolify:**
+1.  Navigate to **Applications** and click **Create a new Application**.
+2.  Select your Git repository and branch.
+3.  In the configuration screen:
+    *   **Build Pack:** Choose **Docker Compose**.
+    *   **Docker Compose Location:** Set this to `./docker-compose.coolify.yml`.
+4.  Save the configuration. Coolify will detect the `web` and `sidekiq` services.
+
+**4. Service Configuration:**
+
+*   **For the `web` service:**
+    *   **Configuration** -> **Start Command:** Set it to run database migrations before starting:
+        ```bash
+        bundle exec rake db:migrate && bundle exec rails server -b 0.0.0.0 -p 3001
+        ```
+    *   **Secrets (Environment Variables):**
+        *   Add your `RAILS_MASTER_KEY`. **Mark it as a "Build-time secret"**.
+    *   **Databases:**
+        *   Link the PostgreSQL and Redis databases you created earlier. Coolify will inject the `DATABASE_URL` and `REDIS_URL` variables.
+    *   **Networking:**
+        *   Assign a domain. The port `3001` is detected automatically from the `Dockerfile`.
+
+*   **For the `sidekiq` service:**
+    *   **Secrets (Environment Variables):**
+        *   Add the same `RAILS_MASTER_KEY` and mark it as a "Build-time secret".
+    *   **Databases:**
+        *   Link the same PostgreSQL and Redis databases.
+
+**5. Deploy:**
+*   Click the **Deploy** button on the application's main page to start the build and deployment process.
+
 ## API Documentation
 
 For **detailed information on how to use all Enkimail API endpoints**, including authentication, request/response formats, parameters, and `curl` examples, please refer to the dedicated documentation file:

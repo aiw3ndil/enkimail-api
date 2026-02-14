@@ -1,0 +1,53 @@
+# Este archivo está optimizado para desplegar en Coolify.
+# Define los servicios de la aplicación que se construirán desde el Dockerfile.
+# La base de datos y Redis deben crearse como servicios "Database" en Coolify
+# para que sean gestionados de forma segura.
+
+services:
+  # Aplicación Rails
+  web:
+    build: .
+    # El comando de inicio se configura en el UI de Coolify.
+    # Debería incluir la migración de la base de datos.
+    # Ejemplo: bundle exec rake db:migrate && bundle exec rails server -b 0.0.0.0 -p 3001
+    command: bundle exec rails server -b 0.0.0.0 -p 3001
+    environment:
+      # RAILS_MASTER_KEY debe ser configurada en los "secrets" de Coolify.
+      # DATABASE_URL y REDIS_URL serán inyectadas automáticamente por Coolify
+      # al vincular los servicios de base de datos.
+      SMTP_ADDRESS: postfix
+      SMTP_PORT: 25
+      TZ: Europe/Helsinki
+
+  # Sidekiq
+  sidekiq:
+    build: .
+    command: bundle exec sidekiq
+    environment:
+      # RAILS_MASTER_KEY debe ser configurada en los "secrets" de Coolify.
+      # DATABASE_URL y REDIS_URL serán inyectadas automáticamente por Coolify
+      # al vincular los servicios de base de datos.
+      SMTP_ADDRESS: postfix
+      SMTP_PORT: 25
+      TZ: Europe/Helsinki
+
+  # Servidor de correo Postfix
+  postfix:
+    image: mwader/postfix-relay
+    environment:
+      # --------------------------------------------------------------------
+      # IMPORTANTE: Cambia 'enkimail.test' por tu dominio real en los "secrets" de Coolify.
+      # Puedes hacerlo añadiendo una variable de entorno POSTFIX_myhostname en la UI de Coolify.
+      # Este dominio debe tener registros DNS (MX, SPF, DKIM) configurados
+      # correctamente para que los correos no sean marcados como spam.
+      # --------------------------------------------------------------------
+      POSTFIX_myhostname: enkimail.test
+      # Permite que otros contenedores en la red interna de Docker envíen correos.
+      POSTFIX_mynetworks: 172.16.0.0/12, 192.168.0.0/16
+    volumes:
+      - postfix_queue:/var/spool/postfix
+    restart: always
+
+# Coolify gestionará los volúmenes definidos aquí.
+volumes:
+  postfix_queue:

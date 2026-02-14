@@ -56,11 +56,11 @@ Rails.application.configure do
   # Highlight code that enqueued background job in logs.
   config.active_job.verbose_enqueue_logs = true
   
-  # Mailpit
+  # Action Mailer SMTP settings, configurable via environment variables
   config.action_mailer.delivery_method = :smtp
   config.action_mailer.smtp_settings = {
-    address: 'mailpit', # Nombre del servicio en tu docker-compose
-    port: 1025          # Puerto SMTP de Mailpit
+    address: ENV.fetch('SMTP_ADDRESS', 'localhost'),
+    port: ENV.fetch('SMTP_PORT', 1025).to_i
   }
 
   # Para que Rails sepa qué dominio usar en los links de los correos
