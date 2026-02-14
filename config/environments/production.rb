@@ -67,19 +67,19 @@ Rails.application.configure do
 
   config.action_mailer.perform_caching = false
   config.action_mailer.delivery_method = :smtp
-    config.action_mailer.perform_deliveries = true
-    config.action_mailer.raise_delivery_errors = true
+  config.action_mailer.perform_deliveries = true
+  config.action_mailer.raise_delivery_errors = true
 
-    config.action_mailer.smtp_settings = {
-      address:              "postfix",
-      port:                 25,
-      domain:               "enkimail.com",
-      authentication:       nil,         # Sin credenciales para red interna
-      enable_starttls_auto: false,       # ¡ESTO ES LO MÁS IMPORTANTE! Desactiva TLS
-      openssl_verify_mode:  'none',      # Ignora certificados SSL
-      open_timeout:         5,           # Tiempo para conectar
-      read_timeout:         5            # Tiempo para recibir respuesta
-    }
+  config.action_mailer.smtp_settings = {
+    address:              "postfix",
+    port:                 25,
+    domain:               "mail.enkimail.com",
+    authentication:       nil,         # Sin credenciales para red interna
+    enable_starttls_auto: false,       # ¡ESTO ES LO MÁS IMPORTANTE! Desactiva TLS
+    openssl_verify_mode:  'none',      # Ignora certificados SSL
+    open_timeout:         5,           # Tiempo para conectar
+    read_timeout:         5            # Tiempo para recibir respuesta
+  }
 
   # Ignore bad email addresses and do not raise email delivery errors.
   # Set this to true and configure the email server for immediate delivery to raise delivery errors.

@@ -41,6 +41,8 @@ services:
       - postfix_queue:/var/spool/postfix
       - opendkim_keys:/etc/opendkim/keys
     environment:
+      # Force IPv4 to avoid DNS resolution issues
+      POSTFIX_inet_protocols: ipv4
       # Define el nombre de host de correo. Debe ser un dominio que controles.
       POSTFIX_myhostname: mail.enkimail.com
       # Redes seguras para permitir el relay desde los otros contenedores.
