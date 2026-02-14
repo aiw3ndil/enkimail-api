@@ -34,14 +34,18 @@ services:
     image: mwader/postfix-relay
     networks:
       - enkimail-net
+    # Usar un script de entrada personalizado para forzar la configuración de DNS
+    entrypoint: /usr/local/bin/postfix-entrypoint.sh
+    command: /opt/run.sh
     volumes:
-      # Forzar el uso de DNS públicos para evitar problemas de resolución en Coolify
-      - ./resolv.conf:/etc/resolv.conf
+      # Montar el script de entrada personalizado
+      - ./postfix-entrypoint.sh:/usr/local/bin/postfix-entrypoint.sh
+      # Volumen para la cola de correos de Postfix
       - postfix_queue:/var/spool/postfix
     environment:
       # Define el nombre de host de correo. Debe ser un dominio que controles.
       POSTFIX_myhostname: mail.enkimail.com
-      # Redes seguras por defecto para Docker. Evita que el relay sea abierto.
+      # Redes seguras para permitir el relay desde los otros contenedores.
       POSTFIX_mynetworks: 172.16.0.0/12, 192.168.0.0/16, 10.0.0.0/8, fd00::/8
     restart: always
 
