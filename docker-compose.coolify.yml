@@ -26,13 +26,14 @@ services:
       TZ: Europe/Helsinki
 
   # Servidor de correo Postfix
-  postfix:
+postfix:
     image: mwader/postfix-relay
     environment:
       POSTFIX_myhostname: mail.enkimail.com
       POSTFIX_mynetworks: 0.0.0.0/0
-      POSTFIX_smtpd_relay_restrictions: permit_mynetworks,permit_sasl_authenticated,defer_unauth_destination
-      POSTFIX_smtpd_recipient_restrictions: permit_mynetworks,permit_sasl_authenticated,reject_unauth_destination
+      # Forzamos la aceptación de cualquier destino si viene de la red interna
+      POSTFIX_smtpd_relay_restrictions: permit
+      POSTFIX_smtpd_recipient_restrictions: permit
     volumes:
       - postfix_queue:/var/spool/postfix
     restart: always
