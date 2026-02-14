@@ -1,6 +1,6 @@
 # app/controllers/webhooks/mta_controller.rb
 class Webhooks::MtaController < ApplicationController
-  skip_before_action :authenticate_request!
+  skip_before_action :verify_authenticity_token, raise: false
   skip_before_action :verify_authenticity_token
 
   def create
