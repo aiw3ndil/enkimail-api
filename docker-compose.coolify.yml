@@ -41,7 +41,7 @@ services:
       # Este dominio debe tener registros DNS (MX, SPF, DKIM) configurados
       # correctamente para que los correos no sean marcados como spam.
       # --------------------------------------------------------------------
-      POSTFIX_myhostname: enkimail.test
+      POSTFIX_myhostname: mail.enkimail.com
       # Permite que otros contenedores en la red interna de Docker envíen correos.
       POSTFIX_mynetworks: 172.16.0.0/12, 192.168.0.0/16
     volumes:
