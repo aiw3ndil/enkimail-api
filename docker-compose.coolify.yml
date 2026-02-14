@@ -34,13 +34,10 @@ services:
     image: mwader/postfix-relay
     networks:
       - enkimail-net
-    # Usar un script de entrada personalizado para forzar la configuración de DNS
-    entrypoint: /tmp/postfix-entrypoint.sh
-    command: /opt/run.sh
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     volumes:
-      # Montar el script de entrada en /tmp, una ruta menos restrictiva
-      - ./postfix-entrypoint.sh:/tmp/postfix-entrypoint.sh
-      # Volumen para la cola de correos de Postfix
       - postfix_queue:/var/spool/postfix
     environment:
       # Define el nombre de host de correo. Debe ser un dominio que controles.
