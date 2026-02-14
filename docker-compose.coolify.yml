@@ -32,13 +32,13 @@ services:
   # Servidor de correo Postfix
   postfix:
     image: mwader/postfix-relay
-    container_name: postfix
     networks:
       - enkimail-net
     environment:
+      # Define el nombre de host de correo. Debe ser un dominio que controles.
       POSTFIX_myhostname: mail.enkimail.com
-      POSTFIX_mynetworks: 0.0.0.0/0
-      POSTFIX_smtpd_relay_restrictions: permit
+      # Redes seguras por defecto para Docker. Evita que el relay sea abierto.
+      POSTFIX_mynetworks: 172.16.0.0/12, 192.168.0.0/16
     volumes:
       - postfix_queue:/var/spool/postfix
     restart: always

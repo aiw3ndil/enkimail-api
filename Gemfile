@@ -35,6 +35,9 @@ gem "bootsnap", require: false
 # Use Rack CORS for handling Cross-Origin Resource Sharing (CORS), making cross-origin Ajax possible
 gem "rack-cors"
 
+# Required for CSV parsing, will be a default gem in Ruby 3.4
+gem "csv"
+
 # Use Redis adapter para Sidekiq y Action Cable
 gem "redis", ">= 4.0.1"
 
