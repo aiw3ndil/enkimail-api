@@ -34,6 +34,9 @@ services:
     image: mwader/postfix-relay
     networks:
       - enkimail-net
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     environment:
       # Define el nombre de host de correo. Debe ser un dominio que controles.
       POSTFIX_myhostname: mail.enkimail.com
