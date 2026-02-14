@@ -76,7 +76,9 @@ Rails.application.configure do
       port:                 ENV.fetch("SMTP_PORT", 25).to_i,
       domain:               ENV.fetch("SMTP_DOMAIN", "enkimail.com"),
       authentication:       nil,    # Eliminamos el error 503 al no enviar credenciales
-      enable_starttls_auto: false   # Para conexiones internas por el puerto 25
+      enable_starttls_auto: false,
+      open_timeout:         10, # Segundos para abrir la conexión
+      read_timeout:         10  # Segundos para esperar respuesta   # Para conexiones internas por el puerto 25
     }
 
   # Ignore bad email addresses and do not raise email delivery errors.
