@@ -39,11 +39,17 @@ services:
       - 1.1.1.1
     volumes:
       - postfix_queue:/var/spool/postfix
+      - opendkim_keys:/etc/opendkim/keys
     environment:
       # Define el nombre de host de correo. Debe ser un dominio que controles.
       POSTFIX_myhostname: mail.enkimail.com
       # Redes seguras para permitir el relay desde los otros contenedores.
       POSTFIX_mynetworks: 172.16.0.0/12, 192.168.0.0/16, 10.0.0.0/8, fd00::/8
+      # --- Configuración DKIM ---
+      # Elige un "selector" para tu clave DKIM. "mail" es un valor común.
+      OPENDKIM_selector: mail
+      # Tu dominio. Postfix generará una clave para este dominio.
+      OPENDKIM_domain: enkimail.com
     restart: always
 
 networks:
@@ -51,4 +57,7 @@ networks:
     driver: bridge
 
 volumes:
+
   postfix_queue:
+
+  opendkim_keys:
