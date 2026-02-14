@@ -80,6 +80,4 @@ test:
 #
 production:
   <<: *default
-  database: enkimail_api_production
-  username: enkimail_api
-  password: <%= ENV["ENKIMAIL_API_DATABASE_PASSWORD"] %>
+  url: <%= ENV["DATABASE_URL"] %>
