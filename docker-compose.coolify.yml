@@ -36,7 +36,7 @@ services:
       - enkimail-net
     volumes:
       # Forzar el uso de DNS públicos para evitar problemas de resolución en Coolify
-      - ./resolv.conf:/etc/resolv.conf:ro
+      - ./resolv.conf:/etc/resolv.conf
       - postfix_queue:/var/spool/postfix
     environment:
       # Define el nombre de host de correo. Debe ser un dominio que controles.
