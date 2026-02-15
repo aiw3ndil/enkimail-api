@@ -1,10 +1,12 @@
+version: "3.9"
+
 services:
   # Aplicación Rails
   web:
     build: .
     command: bundle exec rails server -b 0.0.0.0 -p 3001
     ports:
-      - "3001:3001"
+      - "3001:3001" # 🔹 Exponer Rails al host
     networks:
       - enkimail-net
     environment:
@@ -12,10 +14,10 @@ services:
       SMTP_PORT: 25
       SMTP_DOMAIN: enkimail.com
       TZ: Europe/Helsinki
-      # Permitir hosts en Rails (localhost + contenedor)
-      RAILS_HOSTS: "localhost,127.0.0.1,web"
+      # Hosts permitidos para Rails
+      RAILS_HOSTS: "localhost,127.0.0.1,web,api.enkimail.com,enkimail.com"
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:3001/up" ]
+      test: [ "CMD", "curl", "-f", "http://localhost:3001/up || exit 1" ]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -32,7 +34,6 @@ services:
       SMTP_PORT: 25
       SMTP_DOMAIN: enkimail.com
       TZ: Europe/Helsinki
-      # Mismo host permitido que Rails
       RAILS_HOSTS: "localhost,127.0.0.1,web"
 
   # Servidor de correo Postfix
