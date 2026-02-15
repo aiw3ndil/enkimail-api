@@ -1,0 +1,10 @@
+# test/fixtures/senders.yml
+one:
+  email: "sender@example.com"
+  user: one
+  domain: one
+
+two:
+  email: "other@other.com"
+  user: two
+  domain: two

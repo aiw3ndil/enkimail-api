@@ -1,0 +1,16 @@
+# test/fixtures/domains.yml
+one:
+  name: "example.com"
+  status: 1
+  user: one
+  dkim_private_key: "fake_private_key"
+  dkim_public_key: "fake_public_key"
+  verification_token: "fake_token"
+
+two:
+  name: "other.com"
+  status: 1
+  user: two
+  dkim_private_key: "fake_private_key"
+  dkim_public_key: "fake_public_key"
+  verification_token: "fake_token"

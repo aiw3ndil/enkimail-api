@@ -12,18 +12,26 @@ module Api
         end
 
         # Validate Sender
-        from_email = params[:from] || @current_user.email # Fallback to user email if not provided? Or system default? 
-        # Actually user email might not be verified. Let's enforce param or use a default verified one if exists?
-        # The prompt says: "When a user wants to send a campaign... Is the Sender existing?"
-        
-        unless from_email.present?
-           return render json: { error: 'Missing required parameter: from' }, status: :unprocessable_entity
+        from_email = params[:from]
+
+        if from_email.present?
+          sender = @current_user.senders.find_by(email: from_email)
+          unless sender
+            return render json: { error: "Sender '#{from_email}' not found. Please add it to your Senders list first." }, status: :unprocessable_entity
+          end
+        else
+          # Auto-select first verified sender
+          sender = @current_user.senders.joins(:domain).where(domains: { status: :verified }).first
+          
+          unless sender
+            return render json: { error: "No verified sender found. Please add and verify a Sender identity to send emails." }, status: :unprocessable_entity
+          end
+          
+          from_email = sender.email
         end
 
-        sender = @current_user.senders.find_by(email: from_email)
-        
-        unless sender
-          return render json: { error: "Sender '#{from_email}' not found. Please add it to your Senders list first." }, status: :unprocessable_entity
+        unless sender.domain&.verified?
+          return render json: { error: "Domain '#{sender.domain&.name}' is not verified. Please verify SPF/DKIM records." }, status: :unprocessable_entity
         end
 
         unless sender.domain&.verified?
