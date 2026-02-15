@@ -59,7 +59,7 @@ Rails.application.routes.draw do
 
 
   # Defines the root path route ("/")
-  # root "posts#index"
+  root to: proc { [200, {'Content-Type' => 'application/json'}, [{ status: 'online', app: 'EnkiMail API' }.to_json]] }
 
   mount Sidekiq::Web => '/sidekiq'
 end
