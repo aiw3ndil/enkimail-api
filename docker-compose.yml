@@ -14,6 +14,8 @@ services:
     environment:
       REDIS_URL: redis://redis:6379/1
       DATABASE_URL: postgres://postgres:password@db:5432/enkimail_development
+      SMTP_ADDRESS: postfix
+      SMTP_PORT: 25
       TZ: Europe/Helsinki
 
   # Sidekiq
@@ -26,9 +28,12 @@ services:
     depends_on:
       - db
       - redis
+      - postfix
     environment:
       REDIS_URL: redis://redis:6379/1
       DATABASE_URL: postgres://postgres:password@db:5432/enkimail_development
+      SMTP_ADDRESS: postfix
+      SMTP_PORT: 25
       TZ: Europe/Helsinki
 
   # Mailpit
@@ -40,6 +45,23 @@ services:
     environment:
       MP_UI_AUTH: admin:805473
       TZ: Europe/Helsinki
+    restart: always
+
+  # Postfix para envío real
+  postfix:
+    image: mwader/postfix-relay
+    container_name: enkimail-postfix
+    ports:
+      - "2525:25" # Exponemos el 25 internamente como 25, pero al host como 2525 por si acaso
+    volumes:
+      - postfix_queue:/var/spool/postfix
+      - opendkim_keys:/etc/opendkim/keys
+    environment:
+      POSTFIX_inet_protocols: ipv4
+      POSTFIX_myhostname: mail.enkimail.com
+      POSTFIX_mynetworks: 172.16.0.0/12, 192.168.0.0/16, 10.0.0.0/8, fd00::/8
+      OPENDKIM_DOMAINS: enkimail.com
+      OPENDKIM_selector: mail
     restart: always
 
   db:
@@ -64,3 +86,5 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  postfix_queue:
+  opendkim_keys:
