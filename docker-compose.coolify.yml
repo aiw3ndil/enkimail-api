@@ -10,6 +10,8 @@ services:
       SMTP_PORT: 25
       SMTP_DOMAIN: enkimail.com
       TZ: Europe/Helsinki
+      # Permitir hosts en Rails (localhost + contenedor)
+      RAILS_HOSTS: "localhost,127.0.0.1,web"
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:3001/up" ]
       interval: 30s
@@ -28,6 +30,8 @@ services:
       SMTP_PORT: 25
       SMTP_DOMAIN: enkimail.com
       TZ: Europe/Helsinki
+      # Mismo host permitido que Rails
+      RAILS_HOSTS: "localhost,127.0.0.1,web"
 
   # Servidor de correo Postfix
   postfix:
@@ -41,16 +45,10 @@ services:
       - postfix_queue:/var/spool/postfix
       - opendkim_keys:/etc/opendkim/keys
     environment:
-      # Force IPv4 to avoid DNS resolution issues
       POSTFIX_inet_protocols: ipv4
-      # Define el nombre de host de correo. Debe ser un dominio que controles.
       POSTFIX_myhostname: mail.enkimail.com
-      # Redes seguras para permitir el relay desde los otros contenedores.
       POSTFIX_mynetworks: 172.16.0.0/12, 192.168.0.0/16, 10.0.0.0/8, fd00::/8
-      # --- Configuración DKIM ---
-      # Correct variable for DKIM generation
       OPENDKIM_DOMAINS: enkimail.com
-      # OPENDKIM_selector is likely ignored or used globally, but we keep it for now as it doesn't hurt.
       OPENDKIM_selector: mail
     restart: always
 
@@ -59,7 +57,5 @@ networks:
     driver: bridge
 
 volumes:
-
   postfix_queue:
-
   opendkim_keys:
