@@ -58,11 +58,11 @@ class Api::V1::CampaignsController < Api::V1::ApplicationController
     if @campaign.draft?
       if campaign_params[:scheduled_at].present? && Time.parse(campaign_params[:scheduled_at]) > Time.current
         @campaign.update(status: :scheduled, scheduled_at: campaign_params[:scheduled_at])
-        CampaignSenderWorker.perform_at(@campaign.scheduled_at, @campaign.id)
+        CampaignSenderJob.set(wait_until: @campaign.scheduled_at).perform_later(@campaign.id)
         render json: { status: 'success', message: 'Campaign scheduled for delivery', campaign: @campaign.to_json(include: [:email_template, :contact_list]) }, status: :accepted
       else
         @campaign.update(status: :sending) # A new temporary status for immediately sending
-        CampaignSenderWorker.perform_async(@campaign.id)
+        CampaignSenderJob.perform_later(@campaign.id)
         render json: { status: 'success', message: 'Campaign queued for immediate sending', campaign: @campaign.to_json(include: [:email_template, :contact_list]) }, status: :accepted
       end
     else
