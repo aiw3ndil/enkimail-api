@@ -17,11 +17,11 @@ services:
       # Hosts permitidos para Rails
       RAILS_HOSTS: "localhost,127.0.0.1,web,api.enkimail.com,enkimail.com"
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:3001/up || exit 1" ]
+      test: [ "CMD", "curl", "-f", "http://localhost:3001/up" ]
       interval: 30s
       timeout: 5s
       retries: 3
-      start_period: 40s
+      start_period: 60s
 
   # Sidekiq
   sidekiq:
