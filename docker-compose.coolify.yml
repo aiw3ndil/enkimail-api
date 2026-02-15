@@ -4,9 +4,9 @@ services:
   # Aplicación Rails
   web:
     build: .
-    command: bundle exec rails server -b 0.0.0.0 -p 3001
+    command: bundle exec rails server -b 0.0.0.0
     ports:
-      - "3001:3001" # 🔹 Exponer Rails al host
+      - "3000:3000" # 🔹 Exponer Rails al host
     networks:
       - enkimail-net
     dns:
@@ -20,7 +20,7 @@ services:
       # Hosts permitidos para Rails
       RAILS_HOSTS: "localhost,127.0.0.1,web,api.enkimail.com,enkimail.com"
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:3001/up" ]
+      test: [ "CMD", "curl", "-f", "http://localhost:3000/up" ]
       interval: 30s
       timeout: 5s
       retries: 3
