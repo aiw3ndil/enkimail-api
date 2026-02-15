@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_02_13_113603) do
+ActiveRecord::Schema[7.1].define(version: 2026_02_15_074914) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -71,7 +71,12 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_13_113603) do
     t.string "verification_error"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "verification_token"
+    t.datetime "verification_sent_at"
+    t.datetime "verified_at"
+    t.integer "verification_attempts", default: 0, null: false
     t.index ["user_id"], name: "index_domains_on_user_id"
+    t.index ["verification_token"], name: "index_domains_on_verification_token"
   end
 
   create_table "email_events", force: :cascade do |t|

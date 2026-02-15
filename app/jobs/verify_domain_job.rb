@@ -7,22 +7,39 @@ class VerifyDomainJob < ApplicationJob
     domain = Domain.find_by(id: domain_id)
     return unless domain
 
+    domain.verification_error = nil # Reset error message
+
+    verify_ownership(domain)
     verify_spf(domain)
     verify_dkim(domain)
     
     if domain.verification_error.blank?
       domain.verified!
+      domain.update(verified_at: Time.current)
     else
       domain.failed!
     end
   end
 
   private
+  
+  def verify_ownership(domain)
+    return if domain.verification_error.present? # Fail early
+
+    begin
+      resources = Resolv::DNS.open { |dns| dns.getresources(domain.name, Resolv::DNS::Resource::IN::TXT) }
+      verification_record = resources.find { |r| r.data.include?("enkimail-verification=#{domain.verification_token}") }
+
+      unless verification_record
+        domain.verification_error = "Ownership verification failed. TXT record not found or does not match."
+      end
+    rescue => e
+      domain.verification_error = "DNS lookup failed for ownership verification: #{e.message}"
+    end
+  end
 
   def verify_spf(domain)
-    # Check SPF record
-    # Expected: "v=spf1 include:mail.enkimail.com ~all" or similar
-    # For MVP, just checking if it contains 'include:mail.enkimail.com'
+    return if domain.verification_error.present? # Fail early
     
     begin
       resources = Resolv::DNS.open { |dns| dns.getresources(domain.name, Resolv::DNS::Resource::IN::TXT) }
@@ -41,9 +58,6 @@ class VerifyDomainJob < ApplicationJob
   def verify_dkim(domain)
     return if domain.verification_error.present? # Fail early
 
-    # Check DKIM record
-    # Expected: v=DKIM1; k=rsa; p=...
-    
     begin
       selector_domain = "#{domain.dkim_selector}._domainkey.#{domain.name}"
       resources = Resolv::DNS.open { |dns| dns.getresources(selector_domain, Resolv::DNS::Resource::IN::TXT) }

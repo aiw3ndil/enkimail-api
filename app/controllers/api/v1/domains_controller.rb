@@ -6,12 +6,12 @@ module Api
       # GET /domains
       def index
         @domains = current_user.domains
-        render json: @domains
+        render json: @domains.map { |domain| domain_with_records(domain) }
       end
 
       # GET /domains/:id
       def show
-        render json: @domain
+        render json: domain_with_records(@domain)
       end
 
       # POST /domains
@@ -19,7 +19,7 @@ module Api
         @domain = current_user.domains.new(domain_params)
 
         if @domain.save
-          render json: @domain, status: :created
+          render json: domain_with_records(@domain), status: :created
         else
           render json: @domain.errors, status: :unprocessable_entity
         end
@@ -33,18 +33,12 @@ module Api
 
       # POST /domains/:id/verify
       def verify
-        # Placeholder for DNS verification logic
-        # In a real implementation, we would use Resolv::DNS to check TXT records
-        
-        # Simulating verification for now or implementing basic check if possible
-        # We'll implement actual check in next step
-        
-        if @domain.verified? # Just returning current status for now until logic is added
-             render json: { message: 'Domain is already verified', domain: @domain }
+        if @domain.verified?
+          render json: { message: 'Domain is already verified', domain: domain_with_records(@domain) }
         else
-             # Trigger verification job or service
-             VerifyDomainJob.perform_later(@domain.id)
-             render json: { message: 'Verification queued', domain: @domain }
+          @domain.update(verification_attempts: @domain.verification_attempts + 1, verification_sent_at: Time.current)
+          VerifyDomainJob.perform_later(@domain.id)
+          render json: { message: 'Verification queued', domain: domain_with_records(@domain) }
         end
       end
 
@@ -56,6 +50,26 @@ module Api
 
       def domain_params
         params.require(:domain).permit(:name)
+      end
+      
+      def domain_with_records(domain)
+        domain.as_json.merge(
+          verification_records: {
+            ownership: {
+              name: domain.verification_record_name,
+              value: domain.verification_record_value,
+              instructions: "Create a TXT record for your domain with the following values. Note: If your DNS provider does not allow '@' as a name, you can usually leave it blank."
+            },
+            dkim: {
+              name: domain.dkim_record_name,
+              value: domain.dkim_record_value
+            },
+            spf: {
+              name: "@",
+              value: domain.spf_record_value
+            }
+          }
+        )
       end
     end
   end

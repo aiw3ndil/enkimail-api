@@ -1,13 +1,14 @@
 class Domain < ApplicationRecord
   belongs_to :user
 
-  enum status: { unverified: 0, verified: 1, failed: 2 }
+  enum status: { pending: 0, verified: 1, failed: 2 }
 
   validates :name, presence: true, uniqueness: true, format: { with: /\A[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}\z/i }
   validate :check_domain_limit, on: :create
   
   before_create :generate_dkim_keys
   before_create :set_default_selector
+  before_create :generate_verification_token
 
   def generate_dkim_keys
     return if dkim_private_key.present? && dkim_public_key.present?
@@ -37,7 +38,19 @@ class Domain < ApplicationRecord
     "v=spf1 include:mail.enkimail.com ~all" 
   end
 
+  def verification_record_name
+    "@"
+  end
+
+  def verification_record_value
+    "enkimail-verification=#{verification_token}"
+  end
+
   private
+
+  def generate_verification_token
+    self.verification_token = "enkiverify-#{SecureRandom.hex(16)}"
+  end
 
   def check_domain_limit
     limit = user.pro? ? 10 : 1
