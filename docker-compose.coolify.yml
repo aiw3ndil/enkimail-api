@@ -9,6 +9,9 @@ services:
       - "3001:3001" # 🔹 Exponer Rails al host
     networks:
       - enkimail-net
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     environment:
       SMTP_ADDRESS: postfix
       SMTP_PORT: 25
@@ -29,6 +32,9 @@ services:
     command: bundle exec sidekiq
     networks:
       - enkimail-net
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     environment:
       SMTP_ADDRESS: postfix
       SMTP_PORT: 25

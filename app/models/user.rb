@@ -6,6 +6,12 @@ class User < ApplicationRecord
   
   enum role: { standard: 0, pro: 1 }
 
+  after_initialize :set_default_role, if: :new_record?
+
+  def set_default_role
+    self.role ||= :standard
+  end
+
   def daily_email_limit
     pro? ? 1000 : 300
   end
@@ -27,7 +33,7 @@ class User < ApplicationRecord
   has_many :domains, dependent: :destroy
   has_many :senders, dependent: :destroy
 
-  before_create :generate_api_key
+  before_create :generate__api_key
 
   private
 
