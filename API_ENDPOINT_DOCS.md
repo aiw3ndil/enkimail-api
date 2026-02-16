@@ -688,7 +688,7 @@ Permite crear, leer, actualizar y eliminar campañas de email.
 *   **Cuerpo de la Solicitud (application/json):**
     | Parámetro           | Tipo     | Requerido | Descripción                                                                |
     | :------------------ | :------- | :-------- | :------------------------------------------------------------------------- |
-    | `scheduled_at`      | `DateTime` | No        | Fecha y hora de programación para el envío. Si se omite o es una fecha pasada, la campaña se envía inmediatamente. |
+    | `scheduled_at`      | `DateTime` | No        | Fecha y hora de programación para el envío. Si se omite, la campaña se envía inmediatamente.<br>**Nota:** Se recomienda encarecidamente enviar la fecha en formato ISO 8601 con el offset de zona horaria (ej: `2026-03-01T10:00:00+02:00`) o en UTC (ej: `2026-03-01T08:00:00Z`). Si se envía una fecha sin información de zona horaria, será interpretada como si estuviera en la zona horaria del servidor (`Europe/Helsinki`). |
 *   **Respuesta Exitosa (202 Accepted) - Campaña Programada:**
     ```json
     {
