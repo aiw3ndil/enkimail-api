@@ -5,6 +5,6 @@ class Contact < ApplicationRecord
 
   enum status: { subscribed: 0, unsubscribed: 1, bounced: 2, complained: 3 }
 
-  validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
+  validates :email, presence: true, uniqueness: { scope: :user_id }, format: { with: URI::MailTo::EMAIL_REGEXP }
   validates :status, presence: true
 end
