@@ -1,4 +1,5 @@
 class Campaign < ApplicationRecord
+  default_scope { order(created_at: :desc) }
   belongs_to :email_template
   belongs_to :contact_list
   belongs_to :user
