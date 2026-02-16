@@ -33,7 +33,7 @@ class User < ApplicationRecord
   has_many :domains, dependent: :destroy
   has_many :senders, dependent: :destroy
 
-  before_create :generate__api_key
+  before_create :generate_api_key
 
   private
 
