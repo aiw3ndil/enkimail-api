@@ -49,14 +49,14 @@ class Api::V1::CampaignsController < Api::V1::ApplicationController
 
     Rails.logger.debug "DEBUG: campaign_params[:scheduled_at] = #{campaign_params[:scheduled_at].inspect}"
     if campaign_params[:scheduled_at].present?
-      parsed_time = Time.parse(campaign_params[:scheduled_at])
+      parsed_time = Time.zone.parse(campaign_params[:scheduled_at])
       Rails.logger.debug "DEBUG: parsed_time = #{parsed_time.inspect}"
       Rails.logger.debug "DEBUG: Time.current = #{Time.current.inspect}"
       Rails.logger.debug "DEBUG: parsed_time > Time.current = #{parsed_time > Time.current}"
     end
 
     if @campaign.draft?
-      if campaign_params[:scheduled_at].present? && Time.parse(campaign_params[:scheduled_at]) > Time.current
+      if campaign_params[:scheduled_at].present? && Time.zone.parse(campaign_params[:scheduled_at]) > Time.current
         @campaign.update(status: :scheduled, scheduled_at: campaign_params[:scheduled_at])
         CampaignSenderJob.set(wait_until: @campaign.scheduled_at).perform_later(@campaign.id)
         render json: { status: 'success', message: 'Campaign scheduled for delivery', campaign: @campaign.to_json(include: [:email_template, :contact_list]) }, status: :accepted
