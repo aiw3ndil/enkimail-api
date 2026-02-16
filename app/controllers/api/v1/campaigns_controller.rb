@@ -56,14 +56,22 @@ class Api::V1::CampaignsController < Api::V1::ApplicationController
     end
 
     if @campaign.draft?
-      if campaign_params[:scheduled_at].present? && Time.zone.parse(campaign_params[:scheduled_at]) > Time.current
-        @campaign.update(status: :scheduled, scheduled_at: campaign_params[:scheduled_at])
-        CampaignSenderJob.set(wait_until: @campaign.scheduled_at).perform_later(@campaign.id)
-        render json: { status: 'success', message: 'Campaign scheduled for delivery', campaign: @campaign.to_json(include: [:email_template, :contact_list]) }, status: :accepted
+      if campaign_params[:scheduled_at].present?
+        # Attempt to schedule for a specific time, letting the model validate if it's in the future.
+        if @campaign.update(status: :scheduled, scheduled_at: campaign_params[:scheduled_at])
+          CampaignSenderJob.set(wait_until: @campaign.scheduled_at).perform_later(@campaign.id)
+          render json: { status: 'success', message: 'Campaign scheduled for delivery', campaign: @campaign.to_json(include: [:email_template, :contact_list]) }, status: :accepted
+        else
+          render json: { status: 'error', message: 'Failed to schedule campaign', errors: @campaign.errors.full_messages }, status: :unprocessable_entity
+        end
       else
-        @campaign.update(status: :sending) # A new temporary status for immediately sending
-        CampaignSenderJob.perform_later(@campaign.id)
-        render json: { status: 'success', message: 'Campaign queued for immediate sending', campaign: @campaign.to_json(include: [:email_template, :contact_list]) }, status: :accepted
+        # Send immediately if no scheduled_at is provided.
+        if @campaign.update(status: :sending)
+          CampaignSenderJob.perform_later(@campaign.id)
+          render json: { status: 'success', message: 'Campaign queued for immediate sending', campaign: @campaign.to_json(include: [:email_template, :contact_list]) }, status: :accepted
+        else
+          render json: { status: 'error', message: 'Failed to queue campaign for sending', errors: @campaign.errors.full_messages }, status: :unprocessable_entity
+        end
       end
     else
       render json: { status: 'error', message: 'Campaign must be in draft status to be sent or scheduled' }, status: :unprocessable_entity
