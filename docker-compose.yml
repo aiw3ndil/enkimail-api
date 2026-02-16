@@ -35,6 +35,7 @@ services:
       SMTP_ADDRESS: mailpit
       SMTP_PORT: 1025
       TZ: Europe/Helsinki
+      RAILS_ENV: development
 
   # Mailpit
   mailpit:
