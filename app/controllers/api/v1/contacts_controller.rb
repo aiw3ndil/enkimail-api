@@ -1,4 +1,5 @@
 class Api::V1::ContactsController < Api::V1::ApplicationController
+  rescue_from ActiveRecord::RecordNotUnique, with: :handle_duplicate_entry
   before_action :set_contact, only: %i[ show update destroy ]
 
   # GET /contacts
@@ -71,5 +72,9 @@ class Api::V1::ContactsController < Api::V1::ApplicationController
     # Only allow a list of trusted parameters through.
     def contact_params
       params.require(:contact).permit(:email, :first_name, :last_name, :status, :user_id, custom_attributes: {})
+    end
+
+    def handle_duplicate_entry
+      render json: { error: "Contact already exists." }, status: :unprocessable_entity
     end
 end
