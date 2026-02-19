@@ -28,6 +28,7 @@ Rails.application.routes.draw do
       resources :contact_lists do
         member do
           post :add_contact
+          post :add_contacts
           delete :remove_contact
         end
       end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_02_16_082352) do
+ActiveRecord::Schema[7.1].define(version: 2026_02_19_064005) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -34,7 +34,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_16_082352) do
     t.bigint "contact_list_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["contact_id"], name: "index_contact_list_memberships_on_contact_id"
+    t.index ["contact_id", "contact_list_id"], name: "index_memberships_on_contact_and_list", unique: true
     t.index ["contact_list_id"], name: "index_contact_list_memberships_on_contact_list_id"
   end
 
@@ -127,6 +127,8 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_16_082352) do
     t.integer "role"
     t.string "stripe_customer_id"
     t.string "stripe_subscription_id"
+    t.string "provider"
+    t.string "uid"
     t.index ["api_key"], name: "index_users_on_api_key", unique: true
     t.index ["email"], name: "index_users_on_email", unique: true
   end

@@ -23,6 +23,10 @@ class Api::V1::ContactListPolicy < Api::V1::ApplicationPolicy
     record.user_id == user.id
   end
 
+  def add_contacts?
+    record.user_id == user.id
+  end
+
   def remove_contact?
     record.user_id == user.id
   end
