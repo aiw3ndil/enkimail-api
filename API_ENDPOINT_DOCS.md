@@ -22,7 +22,11 @@ Todas las solicitudes a los endpoints protegidos de esta API deben incluir un to
     {
       "api_key": "...",
       "email": "user@example.com",
-      "role": "standard" // o "pro"
+      "role": "standard", // o "pro"
+      "first_name": "Juan",
+      "last_name": "Perez",
+      "is_pro": false,
+      "stripe_subscription_id": null
     }
     ```
 
@@ -33,18 +37,58 @@ Todas las solicitudes a los endpoints protegidos de esta API deben incluir un to
     {
       "api_key": "...",
       "email": "user@example.com",
-      "role": "standard"
+      "role": "standard",
+      "first_name": "Juan",
+      "last_name": "Perez",
+      "is_pro": false,
+      "stripe_subscription_id": null
     }
     ```
 
 #### `POST /api/v1/authentication/register`
 *   **Descripción:** Registra un nuevo usuario.
+*   **Cuerpo de la Solicitud (application/json):**
+    | Parámetro | Tipo | Requerido | Descripción |
+    | :--- | :--- | :--- | :--- |
+    | `email` | `String` | Sí | Email del usuario. |
+    | `password` | `String` | Sí | Contraseña (mín. 6 caracteres). |
+    | `password_confirmation` | `String` | Sí | Confirmación de contraseña. |
+    | `first_name` | `String` | No | Nombre. |
+    | `last_name` | `String` | No | Apellido. |
 *   **Respuesta Exitosa:**
     ```json
     {
       "api_key": "...",
       "email": "user@example.com",
-      "role": "standard"
+      "role": "standard",
+      "first_name": "Juan",
+      "last_name": "Perez",
+      "is_pro": false,
+      "stripe_subscription_id": null
+    }
+    ```
+
+#### `PATCH /api/v1/update_me`
+*   **Descripción:** Actualiza el perfil del usuario actual.
+*   **Autenticación:** Sí (Bearer Token)
+*   **Cuerpo de la Solicitud (application/json):**
+    | Parámetro | Tipo | Requerido | Descripción |
+    | :--- | :--- | :--- | :--- |
+    | `email` | `String` | No | Nuevo email. |
+    | `first_name` | `String` | No | Nuevo nombre. |
+    | `last_name` | `String` | No | Nuevo apellido. |
+*   **Respuesta Exitosa:**
+    ```json
+    {
+      "message": "Profile updated successfully",
+      "user": {
+        "email": "user@example.com",
+        "first_name": "Juan",
+        "last_name": "Perez",
+        "role": "standard",
+        "is_pro": false,
+        "stripe_subscription_id": null
+      }
     }
     ```
 

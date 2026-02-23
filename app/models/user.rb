@@ -25,6 +25,10 @@ class User < ApplicationRecord
     EmailEvent.where(contact_id: contacts.select(:id), event_type: :sent, created_at: 1.day.ago..Time.current).count
   end
 
+  def full_name
+    "#{first_name} #{last_name}".strip
+  end
+
   has_many :contacts, dependent: :destroy
   has_many :contact_lists
   has_many :campaigns

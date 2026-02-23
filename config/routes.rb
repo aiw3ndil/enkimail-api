@@ -18,6 +18,7 @@ Rails.application.routes.draw do
       post '/login', to: 'authentication#login'
       post '/register', to: 'authentication#register'
       get '/me', to: 'authentication#me'
+      patch '/me', to: 'authentication#update_me'
       resources :email_templates
       resources :contacts do
         collection do
