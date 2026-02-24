@@ -33,6 +33,26 @@ module Api
         render json: { error: e.message }, status: :unprocessable_entity
       end
 
+      def destroy
+        subscription_id = current_user.stripe_subscription_id
+
+        if subscription_id.blank?
+          return render json: { error: "No active subscription found for this user." }, status: :not_found
+        end
+
+        # Cancel the subscription in Stripe
+        # We use 'cancel' to stop the subscription.
+        # For immediate cancellation as requested.
+        deleted_subscription = Stripe::Subscription.cancel(subscription_id)
+
+        # Update user role
+        current_user.update!(role: :standard, stripe_subscription_id: nil)
+
+        render json: { message: "Subscription cancelled successfully. You are now on the standard plan." }, status: :ok
+      rescue Stripe::StripeError => e
+        render json: { error: e.message }, status: :unprocessable_entity
+      end
+
       def webhook
         payload = request.body.read
         sig_header = request.env['HTTP_STRIPE_SIGNATURE']

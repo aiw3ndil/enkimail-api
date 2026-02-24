@@ -47,7 +47,7 @@ Rails.application.routes.draw do
         end
       end
       resources :senders
-      resources :subscriptions, only: [:create]
+      resources :subscriptions, only: [:create, :destroy]
       post '/webhooks/stripe', to: 'subscriptions#webhook'
     end
   end

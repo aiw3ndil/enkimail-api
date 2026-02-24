@@ -1139,6 +1139,18 @@ Permite gestionar la actualización al plan Pro mediante Stripe Checkout.
     }
     ```
 
+#### `DELETE /api/v1/subscriptions/:id` - Cancelar Suscripción
+*   **Descripción:** Cancela inmediatamente la suscripción Pro activa del usuario y lo devuelve al plan Standard.
+*   **Método:** `DELETE`
+*   **Autenticación:** Sí (Bearer Token)
+*   **Respuesta Exitosa (200 OK):**
+    ```json
+    {
+      "message": "Subscription cancelled successfully. You are now on the standard plan."
+    }
+    ```
+*   **Error (404 Not Found):** Si el usuario no tiene una suscripción activa registrada.
+
 #### `POST /webhooks/stripe` - Webhook de Stripe
 *   **Descripción:** (Uso interno de Stripe) Procesa eventos de pago para actualizar automáticamente el rol del usuario a `pro`.
 *   **Método:** `POST`
