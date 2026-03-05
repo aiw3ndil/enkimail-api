@@ -1,0 +1,80 @@
+services:
+  # Aplicación Rails
+  web:
+    build: .
+    container_name: enkimail-app
+    command: /usr/bin/entrypoint.sh rails s -p 3001 -b '192.168.0.101'
+    volumes:
+      - .:/app
+    ports:
+      - "3001:3001"
+    depends_on:
+      - db
+      - redis
+    environment:
+      REDIS_URL: redis://redis:6379/1
+      DATABASE_URL: postgres://postgres:password@db:5432/enkimail_development
+      SMTP_ADDRESS: postfix
+      SMTP_PORT: 1025
+      TZ: Europe/Helsinki
+
+  # Sidekiq
+  sidekiq:
+    build: .
+    container_name: enkimail-sidekiq
+    command: bundle exec sidekiq
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - redis
+      - postfix
+    environment:
+      REDIS_URL: redis://redis:6379/1
+      DATABASE_URL: postgres://postgres:password@db:5432/enkimail_development
+      SMTP_ADDRESS: postfix
+      SMTP_PORT: 1025
+      TZ: Europe/Helsinki
+      RAILS_ENV: development
+
+  # Postfix para envío real
+  postfix:
+    image: mwader/postfix-relay
+    container_name: enkimail-postfix
+    ports:
+      - "2525:25" # Exponemos el 25 internamente como 25, pero al host como 2525 por si acaso
+    volumes:
+      - postfix_queue:/var/spool/postfix
+      - opendkim_keys:/etc/opendkim/keys
+    environment:
+      POSTFIX_inet_protocols: ipv4
+      POSTFIX_myhostname: mail.enkimail.com
+      POSTFIX_mynetworks: 172.16.0.0/12, 192.168.0.0/16, 10.0.0.0/8, fd00::/8
+      OPENDKIM_DOMAINS: enkimail.com
+      OPENDKIM_selector: mail
+    restart: always
+
+  db:
+    image: postgres:15
+    container_name: enkimail-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: enkimail_development
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+  redis:
+    image: redis:7
+    container_name: enkimail-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  postgres_data:
+  redis_data:
+  postfix_queue:
+  opendkim_keys:
