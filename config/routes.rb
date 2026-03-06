@@ -22,6 +22,7 @@ Rails.application.routes.draw do
       patch '/password_resets/:token', to: 'password_resets#update'
       get '/me', to: 'authentication#me'
       patch '/me', to: 'authentication#update_me'
+      patch '/update_password', to: 'authentication#update_password'
       resources :email_templates
       resources :contacts do
         collection do

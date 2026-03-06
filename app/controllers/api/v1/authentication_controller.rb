@@ -88,6 +88,25 @@ class Api::V1::AuthenticationController < ApplicationController
     end
   end
 
+  def update_password
+    if current_user.google_id.present? && current_user.password_digest.blank?
+      # User signed up via Google and has no password set yet
+      if current_user.update(password: params[:new_password], password_confirmation: params[:new_password_confirmation])
+        render json: { message: 'Password set successfully' }, status: :ok
+      else
+        render json: { errors: current_user.errors.full_messages }, status: :unprocessable_entity
+      end
+    elsif current_user.authenticate(params[:current_password])
+      if current_user.update(password: params[:new_password], password_confirmation: params[:new_password_confirmation])
+        render json: { message: 'Password updated successfully' }, status: :ok
+      else
+        render json: { errors: current_user.errors.full_messages }, status: :unprocessable_entity
+      end
+    else
+      render json: { error: 'Current password is incorrect' }, status: :unauthorized
+    end
+  end
+
   def register
     user = User.new(user_params)
     authorize user
