@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_02_23_154554) do
+ActiveRecord::Schema[7.1].define(version: 2026_03_06_113731) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -131,8 +131,10 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_23_154554) do
     t.string "uid"
     t.string "first_name"
     t.string "last_name"
+    t.string "google_id"
     t.index ["api_key"], name: "index_users_on_api_key", unique: true
     t.index ["email"], name: "index_users_on_email", unique: true
+    t.index ["google_id"], name: "index_users_on_google_id"
   end
 
   create_table "webhook_endpoints", force: :cascade do |t|

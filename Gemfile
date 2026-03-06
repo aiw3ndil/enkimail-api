@@ -46,6 +46,8 @@ gem 'sidekiq'
 gem 'stripe'
 gem 'pundit'
 gem 'nokogiri'
+gem 'googleauth'
+gem 'google-id-token'
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem

@@ -1,9 +1,9 @@
 class User < ApplicationRecord
-  has_secure_password
-
+  has_secure_password validations: false
   validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
-  validates :password, presence: true, length: { minimum: 6 }, on: :create
-  
+  validates :password, presence: true, length: { minimum: 6 }, if: -> { google_id.blank? && (new_record? || password.present?) }
+  validates :password, confirmation: true, if: -> { password.present? }
+
   enum role: { standard: 0, pro: 1 }
 
   after_initialize :set_default_role, if: :new_record?

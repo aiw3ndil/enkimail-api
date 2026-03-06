@@ -16,6 +16,7 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       post '/login', to: 'authentication#login'
+      post '/google_login', to: 'authentication#google_login'
       post '/register', to: 'authentication#register'
       get '/me', to: 'authentication#me'
       patch '/me', to: 'authentication#update_me'
