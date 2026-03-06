@@ -13,6 +13,18 @@ class UserMailer < ApplicationMailer
       end
   end
 
+  def password_reset_email(user)
+    @user = user
+    # Typically you would point this to your frontend URL
+    # For now we assume a standard route, but frontend should handle this
+    @url = "#{ENV['FRONTEND_URL'] || 'http://localhost:3000'}/reset-password?token=#{@user.reset_password_token}"
+    
+    mail(to: @user.email, subject: 'Reset your EnkiMail password') do |format|
+      format.html { render html: "<h1>Password Reset</h1><p>Click the link below to reset your password:</p><a href='#{@url}'>Reset Password</a><p>This link will expire in 2 hours.</p>".html_safe }
+      format.text { render plain: "Password Reset. Click the link below to reset your password: #{@url}. This link will expire in 2 hours." }
+    end
+  end
+
 
   def send_generic_email(to, template_name, contact_id, data = {}, campaign_id = nil, email_template_id = nil)
     puts "Data in send_generic_email: #{data.inspect}"

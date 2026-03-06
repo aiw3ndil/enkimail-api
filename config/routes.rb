@@ -18,6 +18,8 @@ Rails.application.routes.draw do
       post '/login', to: 'authentication#login'
       post '/google_login', to: 'authentication#google_login'
       post '/register', to: 'authentication#register'
+      post '/password_resets', to: 'password_resets#create'
+      patch '/password_resets/:token', to: 'password_resets#update'
       get '/me', to: 'authentication#me'
       patch '/me', to: 'authentication#update_me'
       resources :email_templates

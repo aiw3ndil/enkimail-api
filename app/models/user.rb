@@ -29,6 +29,22 @@ class User < ApplicationRecord
     "#{first_name} #{last_name}".strip
   end
 
+  def generate_password_reset_token!
+    self.reset_password_token = SecureRandom.urlsafe_base64
+    self.reset_password_sent_at = Time.current
+    save!
+  end
+
+  def password_reset_token_valid?
+    (reset_password_sent_at + 2.hours) > Time.current
+  end
+
+  def clear_password_reset_token!
+    self.reset_password_token = nil
+    self.reset_password_sent_at = nil
+    save!
+  end
+
   has_many :contacts, dependent: :destroy
   has_many :contact_lists
   has_many :campaigns
