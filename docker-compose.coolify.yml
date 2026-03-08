@@ -13,7 +13,7 @@ services:
       - 8.8.8.8
       - 1.1.1.1
     volumes:
-      - opendkim_data:/etc/opendkim
+      - ./config/opendkim:/etc/opendkim
     environment:
       OPENDKIM_DATA_PATH: /etc/opendkim
       SMTP_ADDRESS: postfix
@@ -39,7 +39,7 @@ services:
       - 8.8.8.8
       - 1.1.1.1
     volumes:
-      - opendkim_data:/etc/opendkim
+      - ./config/opendkim:/etc/opendkim
     environment:
       OPENDKIM_DATA_PATH: /etc/opendkim
       SMTP_ADDRESS: postfix
@@ -58,19 +58,20 @@ services:
       - 1.1.1.1
     volumes:
       - postfix_queue:/var/spool/postfix
-      - opendkim_data:/etc/opendkim
+      - ./config/opendkim:/etc/opendkim
     environment:
       POSTFIX_inet_protocols: ipv4
       POSTFIX_myhostname: mail.enkimail.com
       # Eliminamos fd00::/8 para evitar el error de "unsupported dictionary type: fd00"
       POSTFIX_mynetworks: 127.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 10.0.0.0/8
-      # Usamos el dominio principal. NO USAR "*" ya que expande carpetas del sistema raíz.
+      # Usamos el dominio principal para activar DKIM.
       OPENDKIM_DOMAINS: enkimail.com
       OPENDKIM_SELECTOR: mail
-      # Estas variables activan el soporte para múltiples dominios mediante las tablas de Rails
-      OPENDKIM_KEY_TABLE: /etc/opendkim/KeyTable
-      OPENDKIM_SIGNING_TABLE: /etc/opendkim/SigningTable
-      OPENDKIM_TRUSTED_HOSTS: /etc/opendkim/TrustedHosts
+      # Parámetros exactos de OpenDKIM para soporte multitenant
+      OPENDKIM_KeyTable: /etc/opendkim/KeyTable
+      OPENDKIM_SigningTable: /etc/opendkim/SigningTable
+      OPENDKIM_ExternalIgnoreList: /etc/opendkim/TrustedHosts
+      OPENDKIM_InternalHosts: /etc/opendkim/TrustedHosts
     restart: always
 
 networks:
