@@ -52,35 +52,42 @@ end
 def export_dkim_key
   return unless verified?
 
-  base_dir = ENV.fetch("OPENDKIM_DATA_PATH", Rails.root.join("config", "opendkim"))
+  # Cambiamos a 'dkim_tables' para evitar conflictos con carpetas corruptas previas
+  base_dir = ENV.fetch("OPENDKIM_DATA_PATH", Rails.root.join("config", "dkim_tables"))
   directory = Pathname.new(base_dir)
   keys_directory = directory.join("keys")
+
+  # Creamos la estructura base
   FileUtils.mkdir_p(keys_directory) unless Dir.exist?(keys_directory)
 
   # 1. Exportar llave privada
   File.write(keys_directory.join("#{name}.private"), dkim_private_key)
 
+  # Función auxiliar para forzar que una ruta sea un archivo
+  ensure_is_file = ->(path) do
+    if Dir.exist?(path)
+      system("rm -rf #{path}") # Comando de sistema para ser más agresivo que FileUtils
+    end
+    FileUtils.touch(path) unless File.exist?(path)
+  end
+
   # 2. Actualizar KeyTable
   key_table_path = directory.join("KeyTable")
-  FileUtils.rm_rf(key_table_path) if Dir.exist?(key_table_path)
-  FileUtils.touch(key_table_path) unless File.exist?(key_table_path)
-
+  ensure_is_file.call(key_table_path)
   key_line = "#{dkim_selector}._domainkey.#{name} #{name}:#{dkim_selector}:/etc/opendkim/keys/#{name}.private"
   lines = File.readlines(key_table_path).map(&:strip) rescue []
   File.open(key_table_path, "a") { |f| f.puts(key_line) } unless lines.include?(key_line)
 
   # 3. Actualizar SigningTable
   signing_table_path = directory.join("SigningTable")
-  FileUtils.rm_rf(signing_table_path) if Dir.exist?(signing_table_path)
-  FileUtils.touch(signing_table_path) unless File.exist?(signing_table_path)
-
+  ensure_is_file.call(signing_table_path)
   signing_line = "*@#{name} #{dkim_selector}._domainkey.#{name}"
   lines = File.readlines(signing_table_path).map(&:strip) rescue []
   File.open(signing_table_path, "a") { |f| f.puts(signing_line) } unless lines.include?(signing_line)
 
-  # 4. Actualizar TrustedHosts (permitir que el servidor firme correos de su propia red)
+  # 4. Actualizar TrustedHosts
   trusted_hosts_path = directory.join("TrustedHosts")
-  FileUtils.touch(trusted_hosts_path) unless File.exist?(trusted_hosts_path)
+  ensure_is_file.call(trusted_hosts_path)
   default_hosts = ["127.0.0.1", "localhost", "172.16.0.0/12", "192.168.0.0/16", "10.0.0.0/8"]
   current_hosts = File.readlines(trusted_hosts_path).map(&:strip) rescue []
   File.open(trusted_hosts_path, "a") do |f|
@@ -88,8 +95,7 @@ def export_dkim_key
       f.puts(host) unless current_hosts.include?(host)
     end
   end
-end
-  private
+end  private
 
   def generate_verification_token
     self.verification_token = "enkiverify-#{SecureRandom.hex(16)}"
