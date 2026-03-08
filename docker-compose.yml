@@ -56,13 +56,16 @@ services:
       - "2525:25" # Exponemos el 25 internamente como 25, pero al host como 2525 por si acaso
     volumes:
       - postfix_queue:/var/spool/postfix
-      - opendkim_keys:/etc/opendkim/keys
+      - ./config/opendkim/keys:/etc/opendkim/keys
     environment:
       POSTFIX_inet_protocols: ipv4
       POSTFIX_myhostname: mail.enkimail.com
-      POSTFIX_mynetworks: 172.16.0.0/12, 192.168.0.0/16, 10.0.0.0/8, fd00::/8
-      OPENDKIM_DOMAINS: enkimail.com
-      OPENDKIM_selector: mail
+      # Eliminamos fd00::/8 para evitar el error de "unsupported dictionary type: fd00"
+      POSTFIX_mynetworks: 127.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 10.0.0.0/8
+      # El valor "*" indica que firme cualquier dominio si encuentra la llave en /etc/opendkim/keys/dominio.private
+      OPENDKIM_DOMAINS: "*"
+      # Cambiamos el selector a 'enki' para que coincida con la app
+      OPENDKIM_selector: enki
     restart: always
 
   db:

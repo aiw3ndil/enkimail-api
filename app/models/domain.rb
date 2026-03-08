@@ -46,6 +46,21 @@ class Domain < ApplicationRecord
     "enkimail-verification=#{verification_token}"
   end
 
+  after_save :export_dkim_key, if: :saved_change_to_status?
+
+  def export_dkim_key
+    return unless verified?
+
+    directory = Rails.root.join("config", "opendkim", "keys")
+    FileUtils.mkdir_p(directory) unless Dir.exist?(directory)
+
+    # El formato que espera postfix-relay suele ser /etc/opendkim/keys/dominio.private
+    File.write(File.join(directory, "#{name}.private"), dkim_private_key)
+    
+    # También necesitamos actualizar un archivo que liste los dominios si el contenedor lo requiere
+    # Esto dependerá de cómo el contenedor mwader/postfix-relay procese los archivos.
+  end
+
   private
 
   def generate_verification_token
