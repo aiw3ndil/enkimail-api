@@ -94,6 +94,7 @@ class Domain < ApplicationRecord
 
     # 5. Generar opendkim.conf robusto para sobrescribir cualquier basura previa
     conf_path = directory.join("opendkim.conf")
+    ensure_is_file.call(conf_path)
     conf_content = <<~CONF
       Syslog          yes
       UMask           002
