@@ -66,7 +66,15 @@ class VerifyDomainJob < ApplicationJob
       resources = resolver.query(selector_domain, Dnsruby::Types::TXT).answer
       dkim_record = resources.first
 
-      if dkim_record && dkim_record.rdata.to_s.include?(domain.dkim_public_key)
+      # DKIM records can be split into multiple strings (e.g., OVH)
+      # We need to join them to get the full record
+      full_dkim_record = if dkim_record.respond_to?(:strings)
+                           dkim_record.strings.join
+                         else
+                           dkim_record&.rdata.to_s
+                         end
+
+      if full_dkim_record.include?(domain.dkim_public_key)
         # DKIM passed
       else
          domain.update(verification_error: "DKIM record missing or incorrect. Check selector '#{domain.dkim_selector}' and key value.")
