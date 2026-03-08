@@ -37,42 +37,42 @@ services:
       - enkimail-net
     dns:
       - 8.8.8.8
-      - 1.1.1.1
-    volumes:
-      - ./config/dkim_tables:/etc/opendkim
-    environment:
-      OPENDKIM_DATA_PATH: /etc/opendkim
-      SMTP_ADDRESS: postfix
-      SMTP_PORT: 25
-      SMTP_DOMAIN: enkimail.com
-      TZ: Europe/Helsinki
-      RAILS_HOSTS: "localhost,127.0.0.1,web"
-
-  # Servidor de correo Postfix
-  postfix:
-    image: mwader/postfix-relay
-    networks:
-      - enkimail-net
-    dns:
-      - 8.8.8.8
-      - 1.1.1.1
-    volumes:
-      - postfix_queue:/var/spool/postfix
-      - ./config/dkim_tables:/etc/opendkim
-    environment:
-      POSTFIX_inet_protocols: ipv4
-      POSTFIX_myhostname: mail.enkimail.com
-      # Eliminamos fd00::/8 para evitar el error de "unsupported dictionary type: fd00"
-      POSTFIX_mynetworks: 127.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 10.0.0.0/8
-      # Activamos DKIM para el dominio principal
-      OPENDKIM_DOMAINS: enkimail.com
-      OPENDKIM_SELECTOR: mail
-      # Configuramos las tablas dinámicas usando las rutas dentro del volumen montado
-      OPENDKIM_KEY_TABLE: /etc/opendkim/KeyTable
-      OPENDKIM_SIGNING_TABLE: /etc/opendkim/SigningTable
-      OPENDKIM_TRUSTED_HOSTS: /etc/opendkim/TrustedHosts
-    restart: always
-
+      volumes:
+        - ./config/dkim_vault:/etc/opendkim
+      environment:
+        OPENDKIM_DATA_PATH: /etc/opendkim
+        SMTP_ADDRESS: postfix
+      ...
+      volumes:
+        - ./config/dkim_vault:/etc/opendkim
+      environment:
+        OPENDKIM_DATA_PATH: /etc/opendkim
+        SMTP_ADDRESS: postfix
+      ...
+      # Servidor de correo Postfix
+      postfix:
+      image: mwader/postfix-relay
+      networks:
+        - enkimail-net
+      dns:
+        - 8.8.8.8
+        - 1.1.1.1
+      volumes:
+        - postfix_queue:/var/spool/postfix
+        - ./config/dkim_vault:/etc/opendkim
+      environment:
+        POSTFIX_inet_protocols: ipv4
+        POSTFIX_myhostname: mail.enkimail.com
+        # Eliminamos fd00::/8 para evitar el error de "unsupported dictionary type: fd00"
+        POSTFIX_mynetworks: 127.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 10.0.0.0/8
+        # Activamos DKIM para el dominio principal
+        OPENDKIM_DOMAINS: enkimail.com
+        OPENDKIM_SELECTOR: mail
+        # Variables de tabla estándar para la imagen mwader/postfix-relay
+        OPENDKIM_KeyTable: /etc/opendkim/KeyTable
+        OPENDKIM_SigningTable: /etc/opendkim/SigningTable
+        OPENDKIM_TrustedHosts: /etc/opendkim/TrustedHosts
+      restart: always
 networks:
   enkimail-net:
     driver: bridge

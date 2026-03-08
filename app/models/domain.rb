@@ -47,70 +47,45 @@ class Domain < ApplicationRecord
   def export_dkim_key
     return unless verified?
 
-    # Usamos una ruta configurable para el volumen compartido
-    base_dir = ENV.fetch("OPENDKIM_DATA_PATH", Rails.root.join("config", "dkim_tables"))
+    # Usamos una ruta nueva para evitar carpetas corruptas previas en el host
+    base_dir = ENV.fetch("OPENDKIM_DATA_PATH", Rails.root.join("config", "dkim_vault"))
     directory = Pathname.new(base_dir)
     keys_directory = directory.join("keys")
     
-    # Creamos la estructura base
     FileUtils.mkdir_p(keys_directory) unless Dir.exist?(keys_directory)
 
-    # 1. Exportar llave privada con permisos de lectura
+    # 1. Exportar llave privada
     key_file = keys_directory.join("#{name}.private")
     File.write(key_file, dkim_private_key)
-    File.chmod(0644, key_file) # Permitir que OpenDKIM la lea
+    File.chmod(0644, key_file)
     
-    # Función auxiliar mejorada
-    ensure_is_file = ->(path) do
+    # Función auxiliar para asegurar que la ruta sea un archivo
+    ensure_file = ->(path) do
       system("rm -rf #{path}") if Dir.exist?(path)
       FileUtils.touch(path) unless File.exist?(path)
       File.chmod(0644, path)
     end
 
-    # 2. Actualizar KeyTable
-    key_table_path = directory.join("KeyTable")
-    ensure_is_file.call(key_table_path)
-    key_line = "#{dkim_selector}._domainkey.#{name} #{name}:#{dkim_selector}:/etc/opendkim/keys/#{name}.private"
-    lines = File.readlines(key_table_path).map(&:strip) rescue []
-    File.open(key_table_path, "a") { |f| f.puts(key_line) } unless lines.include?(key_line)
+    # 2. KeyTable
+    path = directory.join("KeyTable")
+    ensure_file.call(path)
+    line = "#{dkim_selector}._domainkey.#{name} #{name}:#{dkim_selector}:/etc/opendkim/keys/#{name}.private"
+    lines = File.readlines(path).map(&:strip) rescue []
+    File.open(path, "a") { |f| f.puts(line) } unless lines.include?(line)
 
-    # 3. Actualizar SigningTable
-    signing_table_path = directory.join("SigningTable")
-    ensure_is_file.call(signing_table_path)
-    signing_line = "*@#{name} #{dkim_selector}._domainkey.#{name}"
-    lines = File.readlines(signing_table_path).map(&:strip) rescue []
-    File.open(signing_table_path, "a") { |f| f.puts(signing_line) } unless lines.include?(signing_line)
+    # 3. SigningTable
+    path = directory.join("SigningTable")
+    ensure_file.call(path)
+    line = "*@#{name} #{dkim_selector}._domainkey.#{name}"
+    lines = File.readlines(path).map(&:strip) rescue []
+    File.open(path, "a") { |f| f.puts(line) } unless lines.include?(line)
 
-    # 4. Actualizar TrustedHosts
-    trusted_hosts_path = directory.join("TrustedHosts")
-    ensure_is_file.call(trusted_hosts_path)
-    default_hosts = ["127.0.0.1", "localhost", "172.16.0.0/12", "192.168.0.0/16", "10.0.0.0/8", "0.0.0.0/0"]
-    current_hosts = File.readlines(trusted_hosts_path).map(&:strip) rescue []
-    File.open(trusted_hosts_path, "a") do |f|
-      (default_hosts + [name]).each do |host|
-        f.puts(host) unless current_hosts.include?(host)
-      end
-    end
-
-    # 5. Generar opendkim.conf robusto para sobrescribir cualquier basura previa
-    conf_path = directory.join("opendkim.conf")
-    ensure_is_file.call(conf_path)
-    conf_content = <<~CONF
-      Syslog          yes
-      UMask           002
-      Canonicalization    relaxed/simple
-      Mode                s
-      SubDomains          no
-      Socket              inet:12301@localhost
-      PidFile             /var/run/opendkim/opendkim.pid
-
-      KeyTable            file:/etc/opendkim/KeyTable
-      SigningTable        refile:/etc/opendkim/SigningTable
-      ExternalIgnoreList  file:/etc/opendkim/TrustedHosts
-      InternalHosts       file:/etc/opendkim/TrustedHosts
-    CONF
-    File.write(conf_path, conf_content)
-    File.chmod(0644, conf_path)
+    # 4. TrustedHosts
+    path = directory.join("TrustedHosts")
+    ensure_file.call(path)
+    hosts = ["127.0.0.1", "localhost", "172.16.0.0/12", "192.168.0.0/16", "10.0.0.0/8", "0.0.0.0/0", name]
+    existing = File.readlines(path).map(&:strip) rescue []
+    File.open(path, "a") { |f| hosts.each { |h| f.puts(h) unless existing.include?(h) } }
   end
 
   private
