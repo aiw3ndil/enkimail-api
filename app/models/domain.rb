@@ -51,14 +51,26 @@ class Domain < ApplicationRecord
   def export_dkim_key
     return unless verified?
 
-    directory = Rails.root.join("config", "opendkim", "keys")
-    FileUtils.mkdir_p(directory) unless Dir.exist?(directory)
+    directory = Rails.root.join("config", "opendkim")
+    keys_directory = directory.join("keys")
+    FileUtils.mkdir_p(keys_directory) unless Dir.exist?(keys_directory)
 
-    # El formato que espera postfix-relay suele ser /etc/opendkim/keys/dominio.private
-    File.write(File.join(directory, "#{name}.private"), dkim_private_key)
+    # 1. Exportar llave privada
+    File.write(keys_directory.join("#{name}.private"), dkim_private_key)
     
-    # También necesitamos actualizar un archivo que liste los dominios si el contenedor lo requiere
-    # Esto dependerá de cómo el contenedor mwader/postfix-relay procese los archivos.
+    # 2. Actualizar KeyTable (mapeo selector -> llave)
+    # Formato: selector._domainkey.dominio dominio:selector:/etc/opendkim/keys/dominio.private
+    key_line = "#{dkim_selector}._domainkey.#{name} #{name}:#{dkim_selector}:/etc/opendkim/keys/#{name}.private\n"
+    File.open(directory.join("KeyTable"), "a") do |f|
+      f.write(key_line) unless File.read(directory.join("KeyTable")).include?(key_line) rescue f.write(key_line)
+    end
+
+    # 3. Actualizar SigningTable (mapeo remitente -> selector)
+    # Formato: *@dominio selector._domainkey.dominio
+    signing_line = "*@#{name} #{dkim_selector}._domainkey.#{name}\n"
+    File.open(directory.join("SigningTable"), "a") do |f|
+      f.write(signing_line) unless File.read(directory.join("SigningTable")).include?(signing_line) rescue f.write(signing_line)
+    end
   end
 
   private
