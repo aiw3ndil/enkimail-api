@@ -88,6 +88,26 @@ class Domain < ApplicationRecord
     File.open(path, "a") { |f| hosts.each { |h| f.puts(h) unless existing.include?(h) } }
   end
 
+  def dns_instructions
+    {
+      verification: {
+        type: "TXT",
+        host: "@",
+        value: verification_record_value
+      },
+      spf: {
+        type: "TXT",
+        host: "@",
+        value: spf_record_value
+      },
+      dkim: {
+        type: "TXT",
+        host: "#{dkim_selector}._domainkey",
+        value: dkim_record_value
+      }
+    }
+  end
+
   private
 
   def generate_verification_token

@@ -54,21 +54,7 @@ module Api
       
       def domain_with_records(domain)
         domain.as_json.merge(
-          verification_records: {
-            ownership: {
-              name: domain.verification_record_name,
-              value: domain.verification_record_value,
-              instructions: "Create a TXT record for your domain with the following values. Note: If your DNS provider does not allow '@' as a name, you can usually leave it blank."
-            },
-            dkim: {
-              name: domain.dkim_record_name,
-              value: domain.dkim_record_value
-            },
-            spf: {
-              name: "@",
-              value: domain.spf_record_value
-            }
-          }
+          dns_instructions: domain.dns_instructions
         )
       end
     end
