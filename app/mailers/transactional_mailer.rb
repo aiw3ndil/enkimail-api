@@ -9,7 +9,7 @@ class TransactionalMailer < ApplicationMailer
       from: from || default_params[:from]
     ) do |format|
       format.text { render plain: @body } if @body.present?
-      format.html { render html: @html_body.html_safe } if @html_body.present?
+      format.html { render inline: @html_body, layout: false } if @html_body.present?
     end
   end
 end
