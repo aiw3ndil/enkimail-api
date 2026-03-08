@@ -12,7 +12,10 @@ services:
     dns:
       - 8.8.8.8
       - 1.1.1.1
+    volumes:
+      - opendkim_data:/etc/opendkim
     environment:
+      OPENDKIM_DATA_PATH: /etc/opendkim
       SMTP_ADDRESS: postfix
       SMTP_PORT: 25
       SMTP_DOMAIN: enkimail.com
@@ -35,7 +38,10 @@ services:
     dns:
       - 8.8.8.8
       - 1.1.1.1
+    volumes:
+      - opendkim_data:/etc/opendkim
     environment:
+      OPENDKIM_DATA_PATH: /etc/opendkim
       SMTP_ADDRESS: postfix
       SMTP_PORT: 25
       SMTP_DOMAIN: enkimail.com
@@ -52,9 +58,7 @@ services:
       - 1.1.1.1
     volumes:
       - postfix_queue:/var/spool/postfix
-      - ./config/opendkim/keys:/etc/opendkim/keys
-      - ./config/opendkim/KeyTable:/etc/opendkim/KeyTable
-      - ./config/opendkim/SigningTable:/etc/opendkim/SigningTable
+      - opendkim_data:/etc/opendkim
     environment:
       POSTFIX_inet_protocols: ipv4
       POSTFIX_myhostname: mail.enkimail.com
@@ -71,4 +75,6 @@ networks:
 
 volumes:
   postfix_queue:
-  opendkim_keys:
+  opendkim_data:
+  postgres_data:
+  redis_data:

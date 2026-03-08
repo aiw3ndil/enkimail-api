@@ -51,25 +51,40 @@ class Domain < ApplicationRecord
   def export_dkim_key
     return unless verified?
 
-    directory = Rails.root.join("config", "opendkim")
+    # Usamos una ruta configurable para el volumen compartido
+    base_dir = ENV.fetch("OPENDKIM_DATA_PATH", Rails.root.join("config", "opendkim"))
+    directory = Pathname.new(base_dir)
     keys_directory = directory.join("keys")
     FileUtils.mkdir_p(keys_directory) unless Dir.exist?(keys_directory)
 
     # 1. Exportar llave privada
     File.write(keys_directory.join("#{name}.private"), dkim_private_key)
-    
-    # 2. Actualizar KeyTable (mapeo selector -> llave)
-    # Formato: selector._domainkey.dominio dominio:selector:/etc/opendkim/keys/dominio.private
-    key_line = "#{dkim_selector}._domainkey.#{name} #{name}:#{dkim_selector}:/etc/opendkim/keys/#{name}.private\n"
-    File.open(directory.join("KeyTable"), "a") do |f|
-      f.write(key_line) unless File.read(directory.join("KeyTable")).include?(key_line) rescue f.write(key_line)
+
+    # 2. Actualizar KeyTable
+    key_table_path = directory.join("KeyTable")
+    # Aseguramos que sea un archivo y no un directorio
+    if Dir.exist?(key_table_path)
+      FileUtils.rm_rf(key_table_path)
+    end
+    FileUtils.touch(key_table_path) unless File.exist?(key_table_path)
+
+    key_line = "#{dkim_selector}._domainkey.#{name} #{name}:#{dkim_selector}:/etc/opendkim/keys/#{name}.private"
+    lines = File.readlines(key_table_path).map(&:strip) rescue []
+    unless lines.include?(key_line)
+      File.open(key_table_path, "a") { |f| f.puts(key_line) }
     end
 
-    # 3. Actualizar SigningTable (mapeo remitente -> selector)
-    # Formato: *@dominio selector._domainkey.dominio
-    signing_line = "*@#{name} #{dkim_selector}._domainkey.#{name}\n"
-    File.open(directory.join("SigningTable"), "a") do |f|
-      f.write(signing_line) unless File.read(directory.join("SigningTable")).include?(signing_line) rescue f.write(signing_line)
+    # 3. Actualizar SigningTable
+    signing_table_path = directory.join("SigningTable")
+    if Dir.exist?(signing_table_path)
+      FileUtils.rm_rf(signing_table_path)
+    end
+    FileUtils.touch(signing_table_path) unless File.exist?(signing_table_path)
+
+    signing_line = "*@#{name} #{dkim_selector}._domainkey.#{name}"
+    lines = File.readlines(signing_table_path).map(&:strip) rescue []
+    unless lines.include?(signing_line)
+      File.open(signing_table_path, "a") { |f| f.puts(signing_line) }
     end
   end
 
