@@ -81,7 +81,7 @@ class Domain < ApplicationRecord
     lines = File.readlines(signing_table_path).map(&:strip) rescue []
     File.open(signing_table_path, "a") { |f| f.puts(signing_line) } unless lines.include?(signing_line)
 
-    # 4. Actualizar TrustedHosts (incluyendo redes comunes de Docker)
+    # 4. Actualizar TrustedHosts
     trusted_hosts_path = directory.join("TrustedHosts")
     ensure_is_file.call(trusted_hosts_path)
     default_hosts = ["127.0.0.1", "localhost", "172.16.0.0/12", "192.168.0.0/16", "10.0.0.0/8", "0.0.0.0/0"]
@@ -91,6 +91,25 @@ class Domain < ApplicationRecord
         f.puts(host) unless current_hosts.include?(host)
       end
     end
+
+    # 5. Generar opendkim.conf robusto para sobrescribir cualquier basura previa
+    conf_path = directory.join("opendkim.conf")
+    conf_content = <<~CONF
+      Syslog          yes
+      UMask           002
+      Canonicalization    relaxed/simple
+      Mode                s
+      SubDomains          no
+      Socket              inet:12301@localhost
+      PidFile             /var/run/opendkim/opendkim.pid
+
+      KeyTable            file:/etc/opendkim/KeyTable
+      SigningTable        refile:/etc/opendkim/SigningTable
+      ExternalIgnoreList  file:/etc/opendkim/TrustedHosts
+      InternalHosts       file:/etc/opendkim/TrustedHosts
+    CONF
+    File.write(conf_path, conf_content)
+    File.chmod(0644, conf_path)
   end
 
   private
