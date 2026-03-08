@@ -1054,7 +1054,7 @@ Permite añadir dominios personalizados y verificar su propiedad mediante regist
         "dkim_public_key": "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQ...",
         "dkim_record_name": "enki._domainkey",
         "dkim_record_value": "v=DKIM1; k=rsa; p=MIGfMA0...",
-        "spf_record_value": "v=spf1 include:mail.enkimail.com ~all",
+        "spf_record_value": "v=spf1 ip4:54.37.230.86 include:mx.ovh.com -all",
         "verification_error": null
       }
     ]

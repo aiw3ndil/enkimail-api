@@ -47,10 +47,10 @@ class VerifyDomainJob < ApplicationJob
       resources = resolver.query(domain.name, Dnsruby::Types::TXT).answer
       spf_record = resources.find { |r| r.rdata.to_s.include?("v=spf1") }
 
-      if spf_record && spf_record.rdata.to_s.include?("include:mail.enkimail.com")
+      if spf_record && spf_record.rdata.to_s.include?("ip4:54.37.230.86")
         # SPF passed
       else
-        domain.update(verification_error: "SPF record missing or incorrect. Expected to include 'mail.enkimail.com'.")
+        domain.update(verification_error: "SPF record missing or incorrect. Expected to include 'ip4:54.37.230.86' and 'include:mx.ovh.com'.")
       end
     rescue => e
       domain.update(verification_error: "DNS lookup failed for SPF: #{e.message}")

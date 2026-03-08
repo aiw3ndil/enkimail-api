@@ -1,0 +1,2 @@
+._domainkey.other.com other.com::/etc/opendkim/keys/other.com.private
+._domainkey.example.com example.com::/etc/opendkim/keys/example.com.private

@@ -33,7 +33,7 @@ class Domain < ApplicationRecord
   end
   
   def spf_record_value
-    "v=spf1 include:mail.enkimail.com ~all" 
+    "v=spf1 ip4:54.37.230.86 include:mx.ovh.com -all"
   end
 
   def verification_record_name

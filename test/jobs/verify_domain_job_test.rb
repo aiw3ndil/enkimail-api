@@ -30,7 +30,7 @@ class VerifyDomainJobTest < ActiveJob::TestCase
     
     # Mock for verify_spf
     spf_answer = [
-      OpenStruct.new(rdata: OpenStruct.new(to_s: "v=spf1 include:mail.enkimail.com ~all"))
+      OpenStruct.new(rdata: OpenStruct.new(to_s: "v=spf1 ip4:54.37.230.86 include:mx.ovh.com -all"))
     ]
     mock_resolver.expect :query, OpenStruct.new(answer: spf_answer), [@domain_name, Dnsruby::Types::TXT]
 
