@@ -68,8 +68,8 @@ services:
       OPENDKIM_DOMAINS: enkimail.com
       OPENDKIM_SELECTOR: mail
       # Configuramos las tablas dinámicas usando las rutas dentro del volumen montado
-      OPENDKIM_KEY_TABLE: file:/etc/opendkim/KeyTable
-      OPENDKIM_SIGNING_TABLE: refile:/etc/opendkim/SigningTable
+      OPENDKIM_KEY_TABLE: /etc/opendkim/KeyTable
+      OPENDKIM_SIGNING_TABLE: /etc/opendkim/SigningTable
       OPENDKIM_TRUSTED_HOSTS: /etc/opendkim/TrustedHosts
     restart: always
 
