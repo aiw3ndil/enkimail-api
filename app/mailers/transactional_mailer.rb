@@ -8,13 +8,9 @@ class TransactionalMailer < ApplicationMailer
         format.html { render inline: html_body, layout: false }
       end
     elsif html_body.present?
-      mail(to: to, subject: subject, from: from_address, content_type: "text/html") do |format|
-        format.html { render inline: html_body, layout: false }
-      end
+      mail(to: to, subject: subject, from: from_address, content_type: "text/html", body: html_body)
     else
-      mail(to: to, subject: subject, from: from_address, content_type: "text/plain") do |format|
-        format.text { render plain: body }
-      end
+      mail(to: to, subject: subject, from: from_address, content_type: "text/plain", body: body)
     end
   end
 end
