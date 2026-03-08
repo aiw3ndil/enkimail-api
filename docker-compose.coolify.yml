@@ -59,19 +59,14 @@ services:
     volumes:
       - postfix_queue:/var/spool/postfix
       - ./config/dkim_tables:/etc/opendkim
+      - ./config/dkim_tables/opendkim.conf:/etc/opendkim.conf
     environment:
       POSTFIX_inet_protocols: ipv4
       POSTFIX_myhostname: mail.enkimail.com
       # Eliminamos fd00::/8 para evitar el error de "unsupported dictionary type: fd00"
       POSTFIX_mynetworks: 127.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 10.0.0.0/8
-      # Usamos el dominio principal para activar DKIM.
-      OPENDKIM_DOMAINS: enkimail.com
-      OPENDKIM_SELECTOR: mail
-      # Parámetros exactos de OpenDKIM para soporte multitenant con prefijos de archivo
-      OPENDKIM_KeyTable: file:/etc/opendkim/KeyTable
-      OPENDKIM_SigningTable: refile:/etc/opendkim/SigningTable
-      OPENDKIM_ExternalIgnoreList: file:/etc/opendkim/TrustedHosts
-      OPENDKIM_InternalHosts: file:/etc/opendkim/TrustedHosts
+      # Desactivamos la generación automática del contenedor para usar nuestra config manual
+      OPENDKIM_DOMAINS: "" 
     restart: always
 
 networks:
