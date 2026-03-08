@@ -67,11 +67,11 @@ services:
       # Usamos el dominio principal para activar DKIM.
       OPENDKIM_DOMAINS: enkimail.com
       OPENDKIM_SELECTOR: mail
-      # Parámetros exactos de OpenDKIM para soporte multitenant
-      OPENDKIM_KeyTable: /etc/opendkim/KeyTable
-      OPENDKIM_SigningTable: /etc/opendkim/SigningTable
-      OPENDKIM_ExternalIgnoreList: /etc/opendkim/TrustedHosts
-      OPENDKIM_InternalHosts: /etc/opendkim/TrustedHosts
+      # Parámetros exactos de OpenDKIM para soporte multitenant con prefijos de archivo
+      OPENDKIM_KeyTable: file:/etc/opendkim/KeyTable
+      OPENDKIM_SigningTable: refile:/etc/opendkim/SigningTable
+      OPENDKIM_ExternalIgnoreList: file:/etc/opendkim/TrustedHosts
+      OPENDKIM_InternalHosts: file:/etc/opendkim/TrustedHosts
     restart: always
 
 networks:

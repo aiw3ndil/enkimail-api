@@ -55,15 +55,16 @@ class Domain < ApplicationRecord
     # Creamos la estructura base
     FileUtils.mkdir_p(keys_directory) unless Dir.exist?(keys_directory)
 
-    # 1. Exportar llave privada
-    File.write(keys_directory.join("#{name}.private"), dkim_private_key)
+    # 1. Exportar llave privada con permisos de lectura
+    key_file = keys_directory.join("#{name}.private")
+    File.write(key_file, dkim_private_key)
+    File.chmod(0644, key_file) # Permitir que OpenDKIM la lea
     
-    # Función auxiliar para forzar que una ruta sea un archivo
+    # Función auxiliar mejorada
     ensure_is_file = ->(path) do
-      if Dir.exist?(path)
-        system("rm -rf #{path}") 
-      end
+      system("rm -rf #{path}") if Dir.exist?(path)
       FileUtils.touch(path) unless File.exist?(path)
+      File.chmod(0644, path)
     end
 
     # 2. Actualizar KeyTable
@@ -80,10 +81,10 @@ class Domain < ApplicationRecord
     lines = File.readlines(signing_table_path).map(&:strip) rescue []
     File.open(signing_table_path, "a") { |f| f.puts(signing_line) } unless lines.include?(signing_line)
 
-    # 4. Actualizar TrustedHosts
+    # 4. Actualizar TrustedHosts (incluyendo redes comunes de Docker)
     trusted_hosts_path = directory.join("TrustedHosts")
     ensure_is_file.call(trusted_hosts_path)
-    default_hosts = ["127.0.0.1", "localhost", "172.16.0.0/12", "192.168.0.0/16", "10.0.0.0/8"]
+    default_hosts = ["127.0.0.1", "localhost", "172.16.0.0/12", "192.168.0.0/16", "10.0.0.0/8", "0.0.0.0/0"]
     current_hosts = File.readlines(trusted_hosts_path).map(&:strip) rescue []
     File.open(trusted_hosts_path, "a") do |f|
       (default_hosts + [name]).each do |host|
