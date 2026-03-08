@@ -95,7 +95,8 @@ def export_dkim_key
       f.puts(host) unless current_hosts.include?(host)
     end
   end
-end  private
+
+  private
 
   def generate_verification_token
     self.verification_token = "enkiverify-#{SecureRandom.hex(16)}"
