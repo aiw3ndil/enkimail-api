@@ -62,11 +62,11 @@ services:
       POSTFIX_inet_protocols: ipv4
       POSTFIX_myhostname: mail.enkimail.com
       POSTFIX_mynetworks: 127.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 10.0.0.0/8
+      # Configuración simplificada al máximo para evitar errores de sintaxis internos
       OPENDKIM_DOMAINS: enkimail.com
-      OPENDKIM_SELECTOR: mail
-      OPENDKIM_KEY_TABLE: /etc/opendkim/KeyTable
-      OPENDKIM_SIGNING_TABLE: /etc/opendkim/SigningTable
-      OPENDKIM_TRUSTED_HOSTS: /etc/opendkim/TrustedHosts
+      OPENDKIM_KeyTable: /etc/opendkim/KeyTable
+      OPENDKIM_SigningTable: /etc/opendkim/SigningTable
+      OPENDKIM_TrustedHosts: /etc/opendkim/TrustedHosts
     restart: always
 
 networks:
