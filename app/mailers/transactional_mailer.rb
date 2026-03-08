@@ -3,13 +3,15 @@ class TransactionalMailer < ApplicationMailer
     @body = body
     @html_body = html_body
     
-    mail(
-      to: to,
-      subject: subject,
-      from: from || default_params[:from]
-    ) do |format|
-      format.text { render plain: @body } if @body.present?
-      format.html { render inline: @html_body, layout: false } if @html_body.present?
+    from_address = from || default_params[:from]
+
+    mail(to: to, subject: subject, from: from_address) do |format|
+      if @html_body.present?
+        format.html { render inline: @html_body, layout: false }
+        format.text { render plain: @body } if @body.present?
+      else
+        format.text { render plain: @body }
+      end
     end
   end
 end
