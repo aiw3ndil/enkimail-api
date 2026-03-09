@@ -41,7 +41,7 @@ class UserMailer < ApplicationMailer
     plain_text_body_content = template.plain_text_body ? render_erb_string(template.plain_text_body, data) : nil
 
     # --- Tracking Logic ---
-    html_body_content = add_tracking_to_html(html_body_content, contact.id, campaign_id, email_template_id)
+    html_body_content = add_tracking_to_html(html_body_content, contact_id, campaign_id, email_template_id)
     # --- End Tracking Logic ---
 
     mail(to: to, subject: rendered_subject) do |format|

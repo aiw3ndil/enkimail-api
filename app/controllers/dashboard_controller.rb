@@ -42,6 +42,8 @@ class DashboardController < ApplicationController
     campaign_spam = total_spam - transactional_spam
 
     render json: {
+      user_id: current_user.id,
+      user_email: current_user.email,
       total_campaigns: total_campaigns,
       total_contacts: total_contacts,
       total_sent: total_sent,
