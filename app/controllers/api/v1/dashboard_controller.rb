@@ -23,10 +23,10 @@ module Api
         @spam_reports = all_events.where(event_type: :spam_report).count
 
         # Calculate rates
-        open_rate = @total_sent > 0 ? (@opens.to_f / @total_sent) : 0.0
-        click_rate = @total_sent > 0 ? (@clicks.to_f / @total_sent) : 0.0
-        bounce_rate = @total_sent > 0 ? (@bounces.to_f / @total_sent) : 0.0
-        spam_report_rate = @total_sent > 0 ? (@spam_reports.to_f / @total_sent) : 0.0
+        open_rate = @total_sent > 0 ? ((@opens.to_f / @total_sent) * 100) : 0.0
+        click_rate = @total_sent > 0 ? ((@clicks.to_f / @total_sent) * 100) : 0.0
+        bounce_rate = @total_sent > 0 ? ((@bounces.to_f / @total_sent) * 100) : 0.0
+        spam_report_rate = @total_sent > 0 ? ((@spam_reports.to_f / @total_sent) * 100) : 0.0
 
         # Time series data for charts (last 30 days)
         @time_series = (30.days.ago.to_date..Date.current).map do |date|
@@ -48,7 +48,6 @@ module Api
             sent: { total: @total_sent, campaign: campaign_sent, transactional: transactional_total, transactional_30_days: transactional_30_days }
           },
           rates: {
-        ...
             open_rate: open_rate,
             click_rate: click_rate,
             bounce_rate: bounce_rate,
