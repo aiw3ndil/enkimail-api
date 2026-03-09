@@ -6,10 +6,10 @@ class EmailsController < ApplicationController
     template_name = params.require(:template_name)
     data = (params.permit(data: {}).to_h[:data] || {}).to_h # Ensure data is a plain hash for Sidekiq
 
-    # Find Contact and EmailTemplate
-    contact = Contact.find_by(email: to)
-    unless contact
-      return render json: { status: 'error', message: "Contact with email '#{to}' not found." }, status: :not_found
+    # Find or Create Contact for the current_user
+    contact = current_user.contacts.find_or_create_by(email: to)
+    unless contact.persisted?
+      return render json: { status: 'error', message: "Could not find or create contact with email '#{to}'." }, status: :unprocessable_entity
     end
 
     email_template = EmailTemplate.find_by(name: template_name)
