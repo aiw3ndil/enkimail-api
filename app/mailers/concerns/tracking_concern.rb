@@ -9,13 +9,19 @@ module TrackingConcern
 
   def add_tracking_to_html(html_body, contact_id, campaign_id = nil, email_template_id = nil)
     # 1. Sent Event (Always create this first!)
+    # Ensure contact_id is an integer to avoid serialization issues with Sidekiq
+    cid = contact_id.to_i
     sent_event = EmailEvent.create!(
       event_type: :sent,
-      contact_id: contact_id,
+      contact_id: cid,
       campaign_id: campaign_id,
       email_template_id: email_template_id
     )
-    Rails.logger.info "[TrackingConcern] Created sent event ID: #{sent_event.id} for contact_id: #{contact_id} (Campaign: #{campaign_id || 'Transactional'})"
+    
+    # Critical Log: Check if the contact actually belongs to a user
+    contact = Contact.find_by(id: cid)
+    user_id = contact&.user_id
+    Rails.logger.info "[TRACKING_STATS] Sent Event Created: ID #{sent_event.id} | Contact: #{cid} | User: #{user_id} | Type: #{campaign_id ? 'Campaign' : 'Transactional'}"
 
     return html_body unless html_body.present?
 
