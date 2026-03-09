@@ -20,8 +20,15 @@ module TrackingConcern
     
     # Critical Log: Check if the contact actually belongs to a user
     contact = Contact.find_by(id: cid)
-    user_id = contact&.user_id
-    Rails.logger.info "[TRACKING_STATS] Sent Event Created: ID #{sent_event.id} | Contact: #{cid} | User: #{user_id} | Type: #{campaign_id ? 'Campaign' : 'Transactional'}"
+    user = contact&.user
+    
+    if user && campaign_id.nil?
+      # Increment the transactional counter atomically
+      user.increment!(:transactional_emails_count)
+      Rails.logger.info "[TRACKING_STATS] Incremented transactional_emails_count for User #{user.id}. Total: #{user.transactional_emails_count}"
+    end
+
+    Rails.logger.info "[TRACKING_STATS] Sent Event Created: ID #{sent_event.id} | Contact: #{cid} | User: #{user&.id} | Type: #{campaign_id ? 'Campaign' : 'Transactional'}"
 
     return html_body unless html_body.present?
 

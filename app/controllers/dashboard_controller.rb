@@ -9,9 +9,12 @@ class DashboardController < ApplicationController
 
     # Sent Breakdown
     sent_events = all_events.where(event_type: :sent)
+    
+    # Use the counter cache for transactional_sent (very fast!)
+    transactional_sent = current_user.transactional_emails_count
+    
+    # Campaign sent is the total minus the transactional count
     total_sent = sent_events.count
-    # A transactional email is one where campaign_id is nil or blank
-    transactional_sent = sent_events.where("campaign_id IS NULL").count
     campaign_sent = total_sent - transactional_sent
 
     # Opens Breakdown

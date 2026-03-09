@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_03_06_133045) do
+ActiveRecord::Schema[7.1].define(version: 2026_03_09_103658) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -134,6 +134,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_06_133045) do
     t.string "google_id"
     t.string "reset_password_token"
     t.datetime "reset_password_sent_at"
+    t.integer "transactional_emails_count", default: 0
     t.index ["api_key"], name: "index_users_on_api_key", unique: true
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["google_id"], name: "index_users_on_google_id"
