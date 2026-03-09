@@ -12,6 +12,11 @@ class EmailsController < ApplicationController
       return render json: { status: 'error', message: "Could not find or create contact with email '#{to}'." }, status: :unprocessable_entity
     end
 
+    # Enforce transactional limit (300 for free plan)
+    unless current_user.transactional_emails_count < 300
+      return render json: { status: 'error', message: "Monthly transactional email limit reached (300 emails). Upgrade your plan to increase your limit." }, status: :too_many_requests
+    end
+
     email_template = EmailTemplate.find_by(name: template_name)
     unless email_template
       return render json: { status: 'error', message: "EmailTemplate with name '#{template_name}' not found." }, status: :not_found

@@ -7,6 +7,10 @@ module Api
           return render json: { error: 'Missing required parameters: to, subject, and body (or html_body)' }, status: :unprocessable_entity
         end
 
+        unless current_user.transactional_emails_count < 300
+          return render json: { error: "Monthly transactional email limit reached (300 emails). Upgrade your plan to increase your limit." }, status: :too_many_requests
+        end
+
         unless current_user.can_send_emails?
           return render json: { error: "Daily email limit reached (#{current_user.daily_email_limit} emails/day). Upgrade your plan to increase your limit." }, status: :too_many_requests
         end
