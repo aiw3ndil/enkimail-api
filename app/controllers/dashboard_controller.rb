@@ -10,32 +10,33 @@ class DashboardController < ApplicationController
     # Sent Breakdown
     sent_events = all_events.where(event_type: :sent)
     total_sent = sent_events.count
-    campaign_sent = sent_events.where.not(campaign_id: nil).count
-    transactional_sent = sent_events.where(campaign_id: nil).count
+    # A transactional email is one where campaign_id is nil or blank
+    transactional_sent = sent_events.where("campaign_id IS NULL").count
+    campaign_sent = total_sent - transactional_sent
 
     # Opens Breakdown
     open_events = all_events.where(event_type: :open)
     total_opens = open_events.count
-    campaign_opens = open_events.where.not(campaign_id: nil).count
-    transactional_opens = open_events.where(campaign_id: nil).count
+    transactional_opens = open_events.where("campaign_id IS NULL").count
+    campaign_opens = total_opens - transactional_opens
     
     # Clicks Breakdown (excluding placeholder events without user_agent)
     click_events = all_events.where(event_type: :click).where.not(user_agent: nil)
     total_clicks = click_events.count
-    campaign_clicks = click_events.where.not(campaign_id: nil).count
-    transactional_clicks = click_events.where(campaign_id: nil).count
+    transactional_clicks = click_events.where("campaign_id IS NULL").count
+    campaign_clicks = total_clicks - transactional_clicks
                        
     # Bounces Breakdown
     bounce_events = all_events.where(event_type: :bounce)
     total_bounces = bounce_events.count
-    campaign_bounces = bounce_events.where.not(campaign_id: nil).count
-    transactional_bounces = bounce_events.where(campaign_id: nil).count
+    transactional_bounces = bounce_events.where("campaign_id IS NULL").count
+    campaign_bounces = total_bounces - transactional_bounces
 
     # Spam Reports Breakdown
     spam_events = all_events.where(event_type: :spam_report)
     total_spam = spam_events.count
-    campaign_spam = spam_events.where.not(campaign_id: nil).count
-    transactional_spam = spam_events.where(campaign_id: nil).count
+    transactional_spam = spam_events.where("campaign_id IS NULL").count
+    campaign_spam = total_spam - transactional_spam
 
     render json: {
       total_campaigns: total_campaigns,
