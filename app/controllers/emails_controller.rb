@@ -19,7 +19,7 @@ class EmailsController < ApplicationController
 
     # Enqueue a background job to send the email
     # For individual emails, campaign_id is nil
-    EmailSenderWorker.perform_async(to, template_name, data, contact.id, nil, email_template.id)
+    SendCampaignEmailJob.perform_later(to, template_name, data, contact.id, nil, email_template.id)
 
     render json: { status: 'success', message: 'Email queued for sending using template', to: to, template_name: template_name, data: data }, status: :accepted
   rescue ActionController::ParameterMissing => e
