@@ -6,15 +6,25 @@ class TrackingController < ApplicationController
     sent_event = EmailEvent.find_by(id: params[:email_event_id])
 
     if sent_event&.sent?
-      # Check if an open event already exists for this contact and campaign
-      unless EmailEvent.exists?(contact_id: sent_event.contact_id, campaign_id: sent_event.campaign_id, event_type: :open)
+      already_opened = if sent_event.campaign_id.present?
+                         # For campaigns, we usually want unique opens per campaign
+                         EmailEvent.exists?(contact_id: sent_event.contact_id, campaign_id: sent_event.campaign_id, event_type: :open)
+                       else
+                         # For transactional, we check if THIS specific email was opened
+                         # We use the details field to store the reference to the original sent event
+                         EmailEvent.where(contact_id: sent_event.contact_id, campaign_id: nil, event_type: :open)
+                                   .where("details LIKE ?", "%sent_event_id:#{sent_event.id}%").exists?
+                       end
+
+      unless already_opened
         EmailEvent.create(
           contact_id: sent_event.contact_id,
           campaign_id: sent_event.campaign_id,
           email_template_id: sent_event.email_template_id,
           event_type: :open,
           ip_address: request.remote_ip,
-          user_agent: request.user_agent
+          user_agent: request.user_agent,
+          details: "sent_event_id:#{sent_event.id}"
         )
       end
     else
@@ -28,25 +38,29 @@ class TrackingController < ApplicationController
   end
 
   def click
-    sent_event = EmailEvent.find_by(id: params[:email_event_id])
+    original_event = EmailEvent.find_by(id: params[:email_event_id])
+    url = params[:url] || original_event&.url
 
-    if sent_event && sent_event.url.present?
-      # Create a new click event linked to the same contact/campaign/template
-      EmailEvent.create(
-        contact_id: sent_event.contact_id,
-        campaign_id: sent_event.campaign_id,
-        email_template_id: sent_event.email_template_id,
+    if original_event && url.present?
+      # Create a REAL click event
+      # If original_event is a 'sent' event, we use its context
+      # If it's a 'click' event (placeholder), we also use its context
+      EmailEvent.create!(
+        contact_id: original_event.contact_id,
+        campaign_id: original_event.campaign_id,
+        email_template_id: original_event.email_template_id,
         event_type: :click,
         ip_address: request.remote_ip,
         user_agent: request.user_agent,
-        url: sent_event.url # Optional: store the clicked URL for reference
+        url: url,
+        details: "original_event_id:#{original_event.id}"
       )
 
-      redirect_to sent_event.url, allow_other_host: true
-    elsif sent_event.nil?
+      redirect_to url, allow_other_host: true
+    elsif original_event.nil?
       Rails.logger.warn "TrackingController#click: EmailEvent with ID #{params[:email_event_id]} not found."
       head :not_found
-    elsif !sent_event.url.present?
+    elsif !url.present?
       Rails.logger.warn "TrackingController#click: EmailEvent with ID #{params[:email_event_id]} has no URL to redirect to."
       head :bad_request
     end

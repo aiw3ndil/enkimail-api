@@ -3,12 +3,19 @@ class DashboardController < ApplicationController
   def index
     total_campaigns = current_user.campaigns.count
     total_contacts = current_user.contacts.count
-    total_sent = EmailEvent.where(contact_id: current_user.contact_ids, event_type: :sent).count
+    
+    # We use contact_ids to filter events belonging to this user's contacts
+    contact_ids = current_user.contact_ids
 
-    opens = EmailEvent.where(contact_id: current_user.contact_ids, event_type: :open).count
-    clicks = EmailEvent.where(contact_id: current_user.contact_ids, event_type: :click).count
-    bounces = EmailEvent.where(contact_id: current_user.contact_ids, event_type: :bounce).count
-    spam_reports = EmailEvent.where(contact_id: current_user.contact_ids, event_type: :spam_report).count
+    total_sent = EmailEvent.where(contact_id: contact_ids, event_type: :sent).count
+    opens = EmailEvent.where(contact_id: contact_ids, event_type: :open).count
+    
+    # Clicks should only count if they have a user_agent, to exclude placeholder click events
+    clicks = EmailEvent.where(contact_id: contact_ids, event_type: :click)
+                       .where.not(user_agent: nil).count
+                       
+    bounces = EmailEvent.where(contact_id: contact_ids, event_type: :bounce).count
+    spam_reports = EmailEvent.where(contact_id: contact_ids, event_type: :spam_report).count
 
     render json: {
       total_campaigns: total_campaigns,

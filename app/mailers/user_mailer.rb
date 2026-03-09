@@ -3,7 +3,7 @@ require 'nokogiri' # Require Nokogiri
 require 'ostruct'
 
 class UserMailer < ApplicationMailer
-  include Rails.application.routes.url_helpers # For track_open_url and track_click_url
+  include TrackingConcern
 
   def export_contacts_email(user, csv_data)
       attachments['contacts.csv'] = { mime_type: 'text/csv', content: csv_data }
@@ -41,31 +41,7 @@ class UserMailer < ApplicationMailer
     plain_text_body_content = template.plain_text_body ? render_erb_string(template.plain_text_body, data) : nil
 
     # --- Tracking Logic ---
-    # 1. Sent Event & Open Tracking Pixel
-    sent_event = EmailEvent.create!(
-      event_type: :sent,
-      contact_id: contact.id,
-      campaign_id: campaign_id,
-      email_template_id: email_template_id
-    )
-    tracking_pixel = "<img src='#{track_open_url(email_event_id: sent_event.id, host: Rails.application.config.action_mailer.default_url_options[:host], port: Rails.application.config.action_mailer.default_url_options[:port])}' width='1' height='1' alt=''>"
-    html_body_content = html_body_content.gsub(/<\/body>/i, "#{tracking_pixel}</body>")
-
-    # 2. Click Tracking Link Rewriting
-    doc = Nokogiri::HTML(html_body_content)
-    doc.css('a').each do |link|
-      original_url = link['href']
-      next unless original_url.present? && original_url.start_with?('http')
-      click_event = EmailEvent.create!(
-        event_type: :click,
-        contact_id: contact.id,
-        campaign_id: campaign_id,
-        email_template_id: email_template_id,
-        url: original_url
-      )
-      link['href'] = track_click_url(email_event_id: click_event.id, host: Rails.application.config.action_mailer.default_url_options[:host], port: Rails.application.config.action_mailer.default_url_options[:port])
-    end
-    html_body_content = doc.to_html
+    html_body_content = add_tracking_to_html(html_body_content, contact.id, campaign_id, email_template_id)
     # --- End Tracking Logic ---
 
     mail(to: to, subject: rendered_subject) do |format|
