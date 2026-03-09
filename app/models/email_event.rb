@@ -7,15 +7,11 @@ class EmailEvent < ApplicationRecord
 
   validates :event_type, presence: true
   validates :contact, presence: true
-  validate :contact_must_have_user
+  validates :url, presence: true, if: -> { click? } # URL is required only for click events
+
+  after_create_commit :dispatch_webhook
 
   private
-
-  def contact_must_have_user
-    if contact && contact.user_id.blank?
-      errors.add(:contact, "must belong to a user to track events")
-    end
-  end
 
   def dispatch_webhook
     # Find active webhook endpoints for this user that obtain this event type
