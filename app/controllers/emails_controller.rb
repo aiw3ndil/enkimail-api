@@ -19,7 +19,8 @@ class EmailsController < ApplicationController
 
     # Enqueue a background job to send the email
     # For individual emails, campaign_id is nil
-    SendCampaignEmailJob.perform_now(to, template_name, data, contact.id, nil, email_template_id)
+    Rails.logger.info "Sending individual email to #{to} with template #{template_name}"
+    SendCampaignEmailJob.perform_now(to, template_name, data, contact.id, nil, email_template.id)
 
 
     render json: { status: 'success', message: 'Email queued for sending using template', to: to, template_name: template_name, data: data }, status: :accepted

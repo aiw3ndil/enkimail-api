@@ -8,9 +8,7 @@ module TrackingConcern
   end
 
   def add_tracking_to_html(html_body, contact_id, campaign_id = nil, email_template_id = nil)
-    return html_body unless html_body.present?
-
-    # 1. Sent Event & Open Tracking Pixel
+    # 1. Sent Event (Always create this first!)
     sent_event = EmailEvent.create!(
       event_type: :sent,
       contact_id: contact_id,
@@ -18,6 +16,9 @@ module TrackingConcern
       email_template_id: email_template_id
     )
 
+    return html_body unless html_body.present?
+
+    # 2. Open Tracking Pixel
     tracking_pixel = "<img src='#{track_open_url(email_event_id: sent_event.id, host: tracking_host, port: tracking_port)}' width='1' height='1' alt=''>"
     html_with_pixel = html_body.gsub(/<\/body>/i, "#{tracking_pixel}</body>")
     
