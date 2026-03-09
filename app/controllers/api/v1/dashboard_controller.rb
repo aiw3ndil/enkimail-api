@@ -2,42 +2,49 @@ module Api
   module V1
     class DashboardController < ApplicationController
       def index
-        # Scope data to current_user
-        # We need to join campaigns to ensure we only get events for the current user's campaigns
-        # or use a direct association if one exists. 
-        # Since EmailEvent belongs to Campaign, and Campaign belongs to User, we can do:
-        
-        email_events = EmailEvent.joins(:campaign).where(campaigns: { user_id: current_user.id })
+        # Base query for all user events (campaign and transactional)
+        all_events = EmailEvent.joins(:contact).where(contacts: { user_id: current_user.id })
         
         @total_campaigns = current_user.campaigns.count
         @total_contacts = current_user.contacts.count
         
-        @total_sent = email_events.where(event_type: :sent).count
-        @opens = email_events.where(event_type: :open).count
-        @clicks = email_events.where(event_type: :click).count
-        @bounces = email_events.where(event_type: :bounce).count
-        @spam_reports = email_events.where(event_type: :spam_report).count
+        # Transactional Sent (Counter Cache)
+        transactional_sent = current_user.transactional_emails_count
+        
+        # Campaign Sent (From campaign events)
+        campaign_sent = all_events.where(event_type: :sent).where.not(campaign_id: nil).count
+        
+        @total_sent = campaign_sent + transactional_sent
+        @opens = all_events.where(event_type: :open).count
+        @clicks = all_events.where(event_type: :click).count
+        @bounces = all_events.where(event_type: :bounce).count
+        @spam_reports = all_events.where(event_type: :spam_report).count
 
         # Calculate rates
-        open_rate = @total_sent > 0 ? (@opens.to_f / @total_sent * 100).round(2) : 0.0
-        click_rate = @total_sent > 0 ? (@clicks.to_f / @total_sent * 100).round(2) : 0.0
-        bounce_rate = @total_sent > 0 ? (@bounces.to_f / @total_sent * 100).round(2) : 0.0
-        spam_report_rate = @total_sent > 0 ? (@spam_reports.to_f / @total_sent * 100).round(2) : 0.0
+        open_rate = @total_sent > 0 ? (@opens.to_f / @total_sent) : 0.0
+        click_rate = @total_sent > 0 ? (@clicks.to_f / @total_sent) : 0.0
+        bounce_rate = @total_sent > 0 ? (@bounces.to_f / @total_sent) : 0.0
+        spam_report_rate = @total_sent > 0 ? (@spam_reports.to_f / @total_sent) : 0.0
 
         # Time series data for charts (last 30 days)
         @time_series = (30.days.ago.to_date..Date.current).map do |date|
           {
             date: date.strftime('%b %d'),
-            sent: email_events.where(event_type: :sent, created_at: date.all_day).count,
-            opens: email_events.where(event_type: :open, created_at: date.all_day).count,
-            clicks: email_events.where(event_type: :click, created_at: date.all_day).count
+            sent: all_events.where(event_type: :sent, created_at: date.all_day).count,
+            opens: all_events.where(event_type: :open, created_at: date.all_day).count,
+            clicks: all_events.where(event_type: :click, created_at: date.all_day).count
           }
         end
 
         render json: {
+          user_id: current_user.id,
+          user_email: current_user.email,
           total_campaigns: @total_campaigns,
           total_contacts: @total_contacts,
           total_sent: @total_sent,
+          breakdown: {
+            sent: { total: @total_sent, campaign: campaign_sent, transactional: transactional_sent }
+          },
           rates: {
             open_rate: open_rate,
             click_rate: click_rate,
