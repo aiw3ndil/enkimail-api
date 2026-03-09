@@ -51,7 +51,7 @@ module Api
           user_id: current_user.id
         }
 
-        SendTransactionalEmailJob.perform_now(email_params)
+        SendTransactionalEmailJob.perform_later(email_params)
 
         render json: { message: 'Email queued for sending', status: 'queued' }, status: :accepted
       rescue StandardError => e
