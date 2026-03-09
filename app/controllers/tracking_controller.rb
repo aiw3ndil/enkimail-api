@@ -5,19 +5,12 @@ class TrackingController < ApplicationController
   def open
     sent_event = EmailEvent.find_by(id: params[:email_event_id])
 
-    if sent_event&.sent?
-      already_opened = if sent_event.campaign_id.present?
-                         # For campaigns, we usually want unique opens per campaign
-                         EmailEvent.exists?(contact_id: sent_event.contact_id, campaign_id: sent_event.campaign_id, event_type: :open)
-                       else
-                         # For transactional, we check if THIS specific email was opened
-                         # We use the details field to store the reference to the original sent event
-                         EmailEvent.where(contact_id: sent_event.contact_id, campaign_id: nil, event_type: :open)
-                                   .where("details LIKE ?", "%sent_event_id:#{sent_event.id}%").exists?
-                       end
+    if sent_event
+      # Use a simpler and more reliable way to check for unique opens per sent email
+      already_opened = EmailEvent.where(event_type: :open, details: "sent_event_id:#{sent_event.id}").exists?
 
       unless already_opened
-        EmailEvent.create(
+        EmailEvent.create!(
           contact_id: sent_event.contact_id,
           campaign_id: sent_event.campaign_id,
           email_template_id: sent_event.email_template_id,
@@ -26,6 +19,7 @@ class TrackingController < ApplicationController
           user_agent: request.user_agent,
           details: "sent_event_id:#{sent_event.id}"
         )
+        Rails.logger.info "[TRACKING] Open recorded for event #{sent_event.id}"
       end
     else
       Rails.logger.warn "TrackingController#open: Sent EmailEvent with ID #{params[:email_event_id]} not found."
