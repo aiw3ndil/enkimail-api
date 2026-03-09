@@ -15,6 +15,7 @@ module TrackingConcern
       campaign_id: campaign_id,
       email_template_id: email_template_id
     )
+    Rails.logger.info "[TrackingConcern] Created sent event ID: #{sent_event.id} for contact_id: #{contact_id} (Campaign: #{campaign_id || 'Transactional'})"
 
     return html_body unless html_body.present?
 

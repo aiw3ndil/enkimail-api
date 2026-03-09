@@ -4,11 +4,8 @@ class DashboardController < ApplicationController
     total_campaigns = current_user.campaigns.count
     total_contacts = current_user.contacts.count
     
-    # We use contact_ids to filter events belonging to this user's contacts
-    contact_ids = current_user.contact_ids
-
-    # Base query for all user events
-    all_events = EmailEvent.where(contact_id: contact_ids)
+    # Base query for all user events using a join with contacts
+    all_events = EmailEvent.joins(:contact).where(contacts: { user_id: current_user.id })
 
     # Sent Breakdown
     sent_events = all_events.where(event_type: :sent)
