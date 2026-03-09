@@ -7,14 +7,16 @@ module Api
         
         @total_campaigns = current_user.campaigns.count
         @total_contacts = current_user.contacts.count
-        
-        # Transactional Sent (Counter Cache)
-        transactional_sent = current_user.transactional_emails_count
-        
+        # Transactional Sent (Last 30 days for limits)
+        transactional_30_days = current_user.transactional_emails_last_30_days
+
+        # Total lifetime count (Counter Cache)
+        transactional_total = current_user.transactional_emails_count
+
         # Campaign Sent (From campaign events)
         campaign_sent = all_events.where(event_type: :sent).where.not(campaign_id: nil).count
-        
-        @total_sent = campaign_sent + transactional_sent
+
+        @total_sent = campaign_sent + transactional_total
         @opens = all_events.where(event_type: :open).count
         @clicks = all_events.where(event_type: :click).count
         @bounces = all_events.where(event_type: :bounce).count
@@ -43,9 +45,10 @@ module Api
           total_contacts: @total_contacts,
           total_sent: @total_sent,
           breakdown: {
-            sent: { total: @total_sent, campaign: campaign_sent, transactional: transactional_sent }
+            sent: { total: @total_sent, campaign: campaign_sent, transactional: transactional_total, transactional_30_days: transactional_30_days }
           },
           rates: {
+        ...
             open_rate: open_rate,
             click_rate: click_rate,
             bounce_rate: bounce_rate,

@@ -21,8 +21,13 @@ class User < ApplicationRecord
   end
 
   def daily_email_count
-    # Count sent emails in the last 24 hours
+    # Count sent emails in the last 24 hours (Campaigns + Transactional)
     EmailEvent.where(contact_id: contacts.select(:id), event_type: :sent, created_at: 1.day.ago..Time.current).count
+  end
+
+  def transactional_emails_last_30_days
+    # Dynamic count of transactional emails (no campaign_id) in the last 30 days
+    EmailEvent.where(contact_id: contacts.select(:id), event_type: :sent, campaign_id: nil, created_at: 30.days.ago..Time.current).count
   end
 
   def full_name
