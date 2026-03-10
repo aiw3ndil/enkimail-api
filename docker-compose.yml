@@ -62,6 +62,8 @@ services:
       POSTFIX_myhostname: mail.enkimail.com
       # Eliminamos fd00::/8 para evitar el error de "unsupported dictionary type: fd00"
       POSTFIX_mynetworks: 127.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 10.0.0.0/8
+      # Necesario para activar el servicio de OpenDKIM en el contenedor
+      OPENDKIM_DOMAINS: "truek.xyz=enki"
       # Cambiamos el selector a 'enki' para que coincida con la app y el estándar
       OPENDKIM_selector: enki
     restart: always
