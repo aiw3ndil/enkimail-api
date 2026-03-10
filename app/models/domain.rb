@@ -82,7 +82,7 @@ class Domain < ApplicationRecord
       # 2. KeyTable
       path = directory.join("KeyTable")
       ensure_file.call(path)
-      line = "#{dkim_selector}._domainkey.#{name} #{name}:#{dkim_selector}:/etc/opendkim/keys/#{name}.private"
+      line = "#{dkim_selector}._domainkey.#{name} #{name}:#{dkim_selector}:/etc/opendkim/keys/#{name}/#{dkim_selector}.private"
       lines = File.readlines(path).map(&:strip).reject(&:empty?) rescue []
       lines << line unless lines.include?(line)
       File.write(path, lines.join("\n") + "\n")
