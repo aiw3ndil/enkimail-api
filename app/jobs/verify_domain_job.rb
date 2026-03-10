@@ -66,12 +66,12 @@ class VerifyDomainJob < ApplicationJob
       resources = resolver.query(selector_domain, Dnsruby::Types::TXT).answer
       dkim_record = resources.first
 
-      # DKIM records can be split into multiple strings (e.g., OVH)
-      # We need to join them to get the full record
+      # DKIM records can be split into multiple strings (e.g., OVH, Google)
+      # We need to join them all into one continuous string to match our DB
       full_dkim_record = if dkim_record.respond_to?(:strings)
-                           dkim_record.strings.join
+                           dkim_record.strings.join("")
                          else
-                           dkim_record&.rdata.to_s
+                           dkim_record&.rdata.to_s.gsub('"', '').gsub(' ', '')
                          end
 
       if full_dkim_record.include?(domain.dkim_public_key)
