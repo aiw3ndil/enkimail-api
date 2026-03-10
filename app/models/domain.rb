@@ -47,46 +47,51 @@ class Domain < ApplicationRecord
   def export_dkim_key
     return unless verified?
 
-    # Usamos una ruta nueva para evitar carpetas corruptas previas en el host
-    # Usamos la ruta que Postfix espera (mapeada en docker-compose)
-    base_dir = Rails.root.join("config", "opendkim")
-    directory = Pathname.new(base_dir)
-    keys_directory = directory.join("keys")
-    
-    FileUtils.mkdir_p(keys_directory) unless Dir.exist?(keys_directory)
+    begin
+      base_dir = Rails.root.join("config", "opendkim")
+      directory = Pathname.new(base_dir)
+      keys_directory = directory.join("keys")
+      
+      FileUtils.mkdir_p(keys_directory) unless Dir.exist?(keys_directory)
 
-    # 1. Exportar llave privada
-    key_file = keys_directory.join("#{name}.private")
-    File.write(key_file, dkim_private_key)
-    File.chmod(0644, key_file)
-    
-    # Función auxiliar para asegurar que la ruta sea un archivo
-    ensure_file = ->(path) do
-      system("rm -rf #{path}") if Dir.exist?(path)
-      FileUtils.touch(path) unless File.exist?(path)
-      File.chmod(0644, path)
+      # 1. Exportar llave privada
+      key_file = keys_directory.join("#{name}.private")
+      File.write(key_file, dkim_private_key)
+      File.chmod(0644, key_file)
+      
+      # Función auxiliar para asegurar que la ruta sea un archivo
+      ensure_file = ->(path) do
+        system("rm -rf #{path}") if Dir.exist?(path)
+        FileUtils.touch(path) unless File.exist?(path)
+        File.chmod(0644, path)
+      end
+
+      # 2. KeyTable
+      path = directory.join("KeyTable")
+      ensure_file.call(path)
+      line = "#{dkim_selector}._domainkey.#{name} #{name}:#{dkim_selector}:/etc/opendkim/keys/#{name}.private"
+      lines = File.readlines(path).map(&:strip) rescue []
+      File.open(path, "a") { |f| f.puts(line) } unless lines.include?(line)
+
+      # 3. SigningTable
+      path = directory.join("SigningTable")
+      ensure_file.call(path)
+      line = "*@#{name} #{dkim_selector}._domainkey.#{name}"
+      lines = File.readlines(path).map(&:strip) rescue []
+      File.open(path, "a") { |f| f.puts(line) } unless lines.include?(line)
+
+      # 4. TrustedHosts
+      path = directory.join("TrustedHosts")
+      ensure_file.call(path)
+      hosts = ["127.0.0.1", "localhost", "172.16.0.0/12", "192.168.0.0/16", "10.0.0.0/8", "0.0.0.0/0", name]
+      existing = File.readlines(path).map(&:strip) rescue []
+      File.open(path, "a") { |f| hosts.each { |h| f.puts(h) unless existing.include?(h) } }
+      
+      Rails.logger.info "DKIM keys exported successfully for #{name}"
+    rescue => e
+      Rails.logger.error "Failed to export DKIM keys for #{name}: #{e.message}"
+      puts "ERROR: Failed to export DKIM keys for #{name}: #{e.message}"
     end
-
-    # 2. KeyTable
-    path = directory.join("KeyTable")
-    ensure_file.call(path)
-    line = "#{dkim_selector}._domainkey.#{name} #{name}:#{dkim_selector}:/etc/opendkim/keys/#{name}.private"
-    lines = File.readlines(path).map(&:strip) rescue []
-    File.open(path, "a") { |f| f.puts(line) } unless lines.include?(line)
-
-    # 3. SigningTable
-    path = directory.join("SigningTable")
-    ensure_file.call(path)
-    line = "*@#{name} #{dkim_selector}._domainkey.#{name}"
-    lines = File.readlines(path).map(&:strip) rescue []
-    File.open(path, "a") { |f| f.puts(line) } unless lines.include?(line)
-
-    # 4. TrustedHosts
-    path = directory.join("TrustedHosts")
-    ensure_file.call(path)
-    hosts = ["127.0.0.1", "localhost", "172.16.0.0/12", "192.168.0.0/16", "10.0.0.0/8", "0.0.0.0/0", name]
-    existing = File.readlines(path).map(&:strip) rescue []
-    File.open(path, "a") { |f| hosts.each { |h| f.puts(h) unless existing.include?(h) } }
   end
 
   def dns_instructions
