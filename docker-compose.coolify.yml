@@ -13,9 +13,9 @@ services:
       - 8.8.8.8
       - 1.1.1.1
     volumes:
-      - ./config/dkim_vault:/etc/opendkim
+      - ./config/opendkim:/etc/opendkim
     environment:
-      OPENDKIM_DATA_PATH: /etc/opendkim
+      # Eliminamos OPENDKIM_DATA_PATH porque el modelo ahora usa la ruta por defecto
       SMTP_ADDRESS: postfix
       SMTP_PORT: 25
       SMTP_DOMAIN: enkimail.com
@@ -38,9 +38,9 @@ services:
       - 8.8.8.8
       - 1.1.1.1
     volumes:
-      - ./config/dkim_vault:/etc/opendkim
+      - ./config/opendkim:/etc/opendkim
     environment:
-      OPENDKIM_DATA_PATH: /etc/opendkim
+      # Eliminamos OPENDKIM_DATA_PATH porque el modelo ahora usa la ruta por defecto
       SMTP_ADDRESS: postfix
       SMTP_PORT: 25
       SMTP_DOMAIN: enkimail.com
@@ -57,14 +57,15 @@ services:
       - 1.1.1.1
     volumes:
       - postfix_queue:/var/spool/postfix
-      - ./config/dkim_vault:/etc/opendkim
+      - ./config/opendkim:/etc/opendkim
     environment:
       POSTFIX_inet_protocols: ipv4
       POSTFIX_myhostname: mail.enkimail.com
       POSTFIX_mynetworks: 127.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 10.0.0.0/8
-      # Añadimos los dominios que queremos que el servidor firme explícitamente
-      OPENDKIM_DOMAINS: enkimail.com, truek.xyz
-      OPENDKIM_SELECTOR: mail
+      # El valor "*" indica que firme cualquier dominio si encuentra la llave en /etc/opendkim/keys/dominio.private
+      OPENDKIM_DOMAINS: "*"
+      # Selector unificado con la app
+      OPENDKIM_SELECTOR: enki
     restart: always
 
 networks:
