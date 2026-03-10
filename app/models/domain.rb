@@ -31,6 +31,12 @@ class Domain < ApplicationRecord
   def dkim_record_value
     "v=DKIM1; k=rsa; p=#{dkim_public_key}"
   end
+
+  def dkim_record_value_split
+    # Split public key into chunks of 255 characters for DNS TXT records
+    chunks = dkim_public_key.scan(/.{1,255}/)
+    "\"v=DKIM1; k=rsa; p=#{chunks.join('" "')}\""
+  end
   
   def spf_record_value
     "v=spf1 ip4:54.37.230.86 include:mx.ovh.com -all"
@@ -70,22 +76,25 @@ class Domain < ApplicationRecord
       path = directory.join("KeyTable")
       ensure_file.call(path)
       line = "#{dkim_selector}._domainkey.#{name} #{name}:#{dkim_selector}:/etc/opendkim/keys/#{name}.private"
-      lines = File.readlines(path).map(&:strip) rescue []
-      File.open(path, "a") { |f| f.puts(line) } unless lines.include?(line)
+      lines = File.readlines(path).map(&:strip).reject(&:empty?) rescue []
+      lines << line unless lines.include?(line)
+      File.write(path, lines.join("\n") + "\n")
 
       # 3. SigningTable
       path = directory.join("SigningTable")
       ensure_file.call(path)
       line = "*@#{name} #{dkim_selector}._domainkey.#{name}"
-      lines = File.readlines(path).map(&:strip) rescue []
-      File.open(path, "a") { |f| f.puts(line) } unless lines.include?(line)
+      lines = File.readlines(path).map(&:strip).reject(&:empty?) rescue []
+      lines << line unless lines.include?(line)
+      File.write(path, lines.join("\n") + "\n")
 
       # 4. TrustedHosts
       path = directory.join("TrustedHosts")
       ensure_file.call(path)
-      hosts = ["127.0.0.1", "localhost", "172.16.0.0/12", "192.168.0.0/16", "10.0.0.0/8", "0.0.0.0/0", name]
-      existing = File.readlines(path).map(&:strip) rescue []
-      File.open(path, "a") { |f| hosts.each { |h| f.puts(h) unless existing.include?(h) } }
+      hosts_to_add = ["127.0.0.1", "localhost", "172.16.0.0/12", "192.168.0.0/16", "10.0.0.0/8", "0.0.0.0/0", name]
+      existing = File.readlines(path).map(&:strip).reject(&:empty?) rescue []
+      (hosts_to_add - existing).each { |h| existing << h }
+      File.write(path, existing.join("\n") + "\n")
       
       Rails.logger.info "DKIM keys exported successfully for #{name}"
     rescue => e
