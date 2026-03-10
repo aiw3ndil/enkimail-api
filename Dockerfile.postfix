@@ -9,7 +9,8 @@ if [ -d "/etc/opendkim/keys" ]; then\n\
 fi\n' > /usr/local/bin/fix-dkim-perms.sh && \
     chmod +x /usr/local/bin/fix-dkim-perms.sh
 
-# Patch the startup script to fix permissions before OpenDKIM starts
+# Patch the startup script to fix permissions and force our config file
 RUN if [ -f /root/run ]; then \
-      sed -i '/^Starting OpenDKIM/i /usr/local/bin/fix-dkim-perms.sh' /root/run; \
+      sed -i '/^Starting OpenDKIM/i /usr/local/bin/fix-dkim-perms.sh' /root/run && \
+      sed -i 's|/usr/sbin/opendkim -u opendkim|/usr/sbin/opendkim -u opendkim -x /etc/opendkim/opendkim.conf|g' /root/run; \
     fi
