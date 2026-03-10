@@ -21,8 +21,8 @@ class CampaignSenderJob < ApplicationJob
       SendCampaignEmailJob.perform_later(
         contact.email,
         email_template.name,
-        data,
         contact.id,
+        data,
         campaign.id,
         email_template.id
       )
