@@ -48,7 +48,8 @@ class Domain < ApplicationRecord
     return unless verified?
 
     # Usamos una ruta nueva para evitar carpetas corruptas previas en el host
-    base_dir = ENV.fetch("OPENDKIM_DATA_PATH", Rails.root.join("config", "dkim_vault"))
+    # Usamos la ruta que Postfix espera (mapeada en docker-compose)
+    base_dir = Rails.root.join("config", "opendkim")
     directory = Pathname.new(base_dir)
     keys_directory = directory.join("keys")
     

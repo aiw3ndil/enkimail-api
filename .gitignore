@@ -32,3 +32,6 @@
 # Ignore master key for decrypting credentials and more.
 /config/master.key
 test_output.txt
+
+# Ignore DKIM keys and configs (handled by the app)
+/config/opendkim/
