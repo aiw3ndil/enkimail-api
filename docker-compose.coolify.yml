@@ -50,7 +50,9 @@ services:
 
   # Servidor de correo Postfix
   postfix:
-    image: mwader/postfix-relay
+    build:
+      context: .
+      dockerfile: Dockerfile.postfix
     networks:
       - enkimail-net
     dns:
