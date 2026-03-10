@@ -94,15 +94,18 @@ class Domain < ApplicationRecord
     File.chmod(0644, directory.join("KeyTable"))
 
     # --- SigningTable ---
-    # Format: *@domain  selector._domainkey.domain  (wildcard for all subaddresses)
-    signing_table_lines = domains.map do |d|
-      "*@#{d.name} #{d.dkim_selector}._domainkey.#{d.name}"
+    # Include both literal domain and wildcard for maximum compatibility
+    signing_table_lines = domains.flat_map do |d|
+      [
+        "#{d.name} #{d.dkim_selector}._domainkey.#{d.name}",
+        "*@#{d.name} #{d.dkim_selector}._domainkey.#{d.name}"
+      ]
     end
     File.write(directory.join("SigningTable"), signing_table_lines.join("\n") + "\n")
     File.chmod(0644, directory.join("SigningTable"))
 
     # --- TrustedHosts ---
-    base_hosts = ["127.0.0.1", "localhost", "172.16.0.0/12", "192.168.0.0/16", "10.0.0.0/8"]
+    base_hosts = ["127.0.0.1", "localhost", "172.16.0.0/12", "192.168.0.0/16", "10.0.0.0/8", "0.0.0.0/0"]
     domain_hosts = domains.map(&:name)
     all_hosts = (base_hosts + domain_hosts).uniq
     File.write(directory.join("TrustedHosts"), all_hosts.join("\n") + "\n")
@@ -112,6 +115,7 @@ class Domain < ApplicationRecord
     # Always overwrite so it stays up-to-date with current selector
     conf_content = <<~CONF
       Syslog                  yes
+      LogWhy                  yes
       UMask                   002
       Socket                  inet:12301@localhost
       KeyTable                /etc/opendkim/KeyTable
@@ -125,6 +129,16 @@ class Domain < ApplicationRecord
     CONF
     File.write(directory.join("opendkim.conf"), conf_content)
     File.chmod(0644, directory.join("opendkim.conf"))
+
+    # Ensure keys directory and subdirectories are traversable (0755)
+    keys_dir = directory.join("keys")
+    if Dir.exist?(keys_dir)
+      FileUtils.chmod(0755, keys_dir)
+      domains.each do |d|
+        subdir = keys_dir.join(d.name)
+        FileUtils.chmod(0755, subdir) if Dir.exist?(subdir)
+      end
+    end
 
     Rails.logger.info "OpenDKIM config regenerated for #{domains.size} domain(s)"
   rescue => e
