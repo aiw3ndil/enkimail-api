@@ -15,7 +15,7 @@ services:
     volumes:
       - ./config/opendkim:/etc/opendkim
     environment:
-      # Eliminamos OPENDKIM_DATA_PATH porque el modelo ahora usa la ruta por defecto
+      OPENDKIM_DATA_PATH: /etc/opendkim
       SMTP_ADDRESS: postfix
       SMTP_PORT: 25
       SMTP_DOMAIN: enkimail.com
@@ -40,7 +40,7 @@ services:
     volumes:
       - ./config/opendkim:/etc/opendkim
     environment:
-      # Eliminamos OPENDKIM_DATA_PATH porque el modelo ahora usa la ruta por defecto
+      OPENDKIM_DATA_PATH: /etc/opendkim
       SMTP_ADDRESS: postfix
       SMTP_PORT: 25
       SMTP_DOMAIN: enkimail.com
