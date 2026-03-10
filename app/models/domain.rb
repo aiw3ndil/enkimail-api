@@ -48,7 +48,7 @@ class Domain < ApplicationRecord
     return unless verified?
 
     begin
-      base_dir = Rails.root.join("config", "opendkim")
+      base_dir = ENV['OPENDKIM_DATA_PATH'] || Rails.root.join("config", "opendkim")
       directory = Pathname.new(base_dir)
       keys_directory = directory.join("keys")
       
