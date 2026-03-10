@@ -12,6 +12,7 @@ class CampaignSenderJob < ApplicationJob
     contact_list.contacts.each do |contact|
       # Prepare data for the template interpolation
       data = {
+        name: contact.first_name || contact.email.split('@').first,
         user_name: contact.first_name || contact.email.split('@').first,
         user_email: contact.email,
         campaign_name: campaign.name,

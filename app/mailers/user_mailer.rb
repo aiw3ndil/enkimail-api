@@ -53,6 +53,8 @@ class UserMailer < ApplicationMailer
   private
 
   def render_erb_string(template_string, data)
-    ERB.new(template_string).result(OpenStruct.new(data).instance_eval { binding })
+    # Support {{variable}} by converting it to <%= variable %> before ERB processing
+    processed_template = template_string.gsub(/\{\{\s*(\w+)\s*\}\}/, '<%= \1 %>')
+    ERB.new(processed_template).result(OpenStruct.new(data).instance_eval { binding })
   end
 end
