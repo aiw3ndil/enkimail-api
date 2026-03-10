@@ -63,8 +63,6 @@ services:
       POSTFIX_inet_protocols: ipv4
       POSTFIX_myhostname: mail.enkimail.com
       POSTFIX_mynetworks: 127.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 10.0.0.0/8
-      # Usamos el dominio correcto con su selector
-      OPENDKIM_DOMAINS: "truek.xyz=enki"
       # Selector unificado
       OPENDKIM_SELECTOR: enki
       # Evita fallos por permisos de volumen de Docker
