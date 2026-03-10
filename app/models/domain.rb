@@ -107,6 +107,26 @@ class Domain < ApplicationRecord
       (hosts_to_add - existing).each { |h| existing << h }
       File.write(path, existing.join("\n") + "\n")
       File.chmod(0644, path)
+
+      # 5. opendkim.conf (Crucial para que el MTA use nuestras tablas)
+      path = directory.join("opendkim.conf")
+      unless File.exist?(path)
+        content = <<~CONF
+          Syslog          yes
+          UMask           002
+          Domain          *
+          Selector        #{dkim_selector}
+          KeyTable        /etc/opendkim/KeyTable
+          SigningTable    refile:/etc/opendkim/SigningTable
+          ExternalIgnoreList  refile:/etc/opendkim/TrustedHosts
+          InternalHosts       refile:/etc/opendkim/TrustedHosts
+          Canonicalization    relaxed/simple
+          Mode                sv
+          SubDomains          no
+        CONF
+        File.write(path, content)
+        File.chmod(0644, path)
+      end
       
       Rails.logger.info "DKIM keys exported successfully for #{name}"
     rescue => e
