@@ -1,16 +1,12 @@
-version: "3.9"
-
 services:
   # Aplicación Rails
   web:
     build: .
     command: bundle exec rails server -b 0.0.0.0
-    ports:
-      - "3000:3000"
     networks:
       - enkimail-net
     dns:
-      - 8.8.8.8
+      - 8.8.8.1
       - 1.1.1.1
     volumes:
       - ./config/opendkim:/etc/opendkim
@@ -20,13 +16,15 @@ services:
       SMTP_PORT: 25
       SMTP_DOMAIN: enkimail.com
       TZ: Europe/Helsinki
-      RAILS_HOSTS: "localhost,127.0.0.1,web,api.enkimail.com,enkimail.com"
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:3000/up" ]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 60s
+    depends_on:
+      - db
+      - redis
 
   # Sidekiq
   sidekiq:
@@ -45,7 +43,10 @@ services:
       SMTP_PORT: 25
       SMTP_DOMAIN: enkimail.com
       TZ: Europe/Helsinki
-      RAILS_HOSTS: "localhost,127.0.0.1,web"
+    depends_on:
+      - db
+      - redis
+      - postfix
 
   # Servidor de correo Postfix
   postfix:
@@ -58,7 +59,6 @@ services:
     volumes:
       - postfix_queue:/var/spool/postfix
       - ./config/opendkim:/etc/opendkim
-      - ./config/opendkim/opendkim.conf:/etc/opendkim.conf
     environment:
       POSTFIX_inet_protocols: ipv4
       POSTFIX_myhostname: mail.enkimail.com
@@ -66,9 +66,31 @@ services:
       # Necesario para activar el servicio de OpenDKIM en el contenedor
       OPENDKIM_DOMAINS: "truek.xyz=enki"
       # Selector unificado
-      OPENDKIM_SELECTOR: enki
+      OPENDKIM_selector: enki
       # Evita fallos por permisos de volumen de Docker
       OPENDKIM_RequireSafeKeys: "no"
+    restart: always
+
+  # Base de Datos
+  db:
+    image: postgres:15
+    networks:
+      - enkimail-net
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: enkimail_production
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+
+  # Redis
+  redis:
+    image: redis:7
+    networks:
+      - enkimail-net
+    volumes:
+      - redis_data:/data
     restart: always
 
 networks:
