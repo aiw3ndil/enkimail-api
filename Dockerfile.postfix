@@ -1,0 +1,15 @@
+FROM mwader/postfix-relay:latest
+
+# Fix DKIM key permissions before OpenDKIM starts
+RUN mkdir -p /usr/local/bin && \
+    echo '#!/bin/bash\n\
+if [ -d "/etc/opendkim/keys" ]; then\n\
+  find /etc/opendkim/keys -name "*.private" -type f -exec chmod 600 {} \;\n\
+  find /etc/opendkim/keys -name "*.private" -type f -exec chown opendkim:opendkim {} \;\n\
+fi\n' > /usr/local/bin/fix-dkim-perms.sh && \
+    chmod +x /usr/local/bin/fix-dkim-perms.sh
+
+# Patch the startup script to fix permissions before OpenDKIM starts
+RUN if [ -f /root/run ]; then \
+      sed -i '/^Starting OpenDKIM/i /usr/local/bin/fix-dkim-perms.sh' /root/run; \
+    fi
