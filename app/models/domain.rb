@@ -82,18 +82,22 @@ class Domain < ApplicationRecord
       # 2. KeyTable
       path = directory.join("KeyTable")
       ensure_file.call(path)
+      # Formato: selector._domainkey.domain domain:selector:path_to_private_key
       line = "#{dkim_selector}._domainkey.#{name} #{name}:#{dkim_selector}:/etc/opendkim/keys/#{name}/#{dkim_selector}.private"
       lines = File.readlines(path).map(&:strip).reject(&:empty?) rescue []
       lines << line unless lines.include?(line)
       File.write(path, lines.join("\n") + "\n")
+      File.chmod(0644, path)
 
       # 3. SigningTable
       path = directory.join("SigningTable")
       ensure_file.call(path)
-      line = "*@#{name} #{dkim_selector}._domainkey.#{name}"
+      # Formato compatible con postfix-relay: domain selector._domainkey.domain
+      line = "#{name} #{dkim_selector}._domainkey.#{name}"
       lines = File.readlines(path).map(&:strip).reject(&:empty?) rescue []
       lines << line unless lines.include?(line)
       File.write(path, lines.join("\n") + "\n")
+      File.chmod(0644, path)
 
       # 4. TrustedHosts
       path = directory.join("TrustedHosts")
@@ -102,6 +106,7 @@ class Domain < ApplicationRecord
       existing = File.readlines(path).map(&:strip).reject(&:empty?) rescue []
       (hosts_to_add - existing).each { |h| existing << h }
       File.write(path, existing.join("\n") + "\n")
+      File.chmod(0644, path)
       
       Rails.logger.info "DKIM keys exported successfully for #{name}"
     rescue => e
