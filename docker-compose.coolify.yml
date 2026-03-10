@@ -65,12 +65,8 @@ services:
       POSTFIX_inet_protocols: ipv4
       POSTFIX_myhostname: mail.enkimail.com
       POSTFIX_mynetworks: 127.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 10.0.0.0/8
-      # Necesario para activar el servicio de OpenDKIM en el contenedor
-      OPENDKIM_DOMAINS: "truek.xyz=enki"
-      # Selector unificado
-      OPENDKIM_selector: enki
-      # Forzar canonicalización relaxed/simple
-      OPENDKIM_CANONICALIZATION: relaxed/simple
+      POSTFIX_smtpd_milters: inet:127.0.0.1:12301
+      POSTFIX_non_smtpd_milters: inet:127.0.0.1:12301
       # Evita fallos por permisos de volumen de Docker
       OPENDKIM_RequireSafeKeys: "no"
     restart: always

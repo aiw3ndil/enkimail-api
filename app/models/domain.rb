@@ -64,7 +64,7 @@ class Domain < ApplicationRecord
       # 1. Write private key (mwader/postfix-relay format: keys/<domain>/<selector>.private)
       key_file = keys_directory.join("#{dkim_selector}.private")
       File.write(key_file, dkim_private_key)
-      File.chmod(0600, key_file)
+      File.chmod(0640, key_file)
 
       # 2. Regenerate all shared config files from DB, so we never accumulate stale entries
       Domain.regenerate_opendkim_config(base_dir)
@@ -114,6 +114,8 @@ class Domain < ApplicationRecord
     # --- opendkim.conf ---
     # Always overwrite so it stays up-to-date with current selector
     conf_content = <<~CONF
+      # Forced by EnkiMail Aggressive DKIM
+      UserID                  opendkim
       Syslog                  yes
       LogWhy                  yes
       UMask                   002
@@ -130,13 +132,19 @@ class Domain < ApplicationRecord
     File.write(directory.join("opendkim.conf"), conf_content)
     File.chmod(0644, directory.join("opendkim.conf"))
 
-    # Ensure keys directory and subdirectories are traversable (0755)
+    # Ensure everything in the directory is readable by the opendkim user (gid usually matches)
+    # and that the keys directory and subdirectories are traversable (0755)
+    FileUtils.chmod(0755, directory)
     keys_dir = directory.join("keys")
     if Dir.exist?(keys_dir)
       FileUtils.chmod(0755, keys_dir)
       domains.each do |d|
         subdir = keys_dir.join(d.name)
         FileUtils.chmod(0755, subdir) if Dir.exist?(subdir)
+        
+        # Ensure the private key is readable by opendkim group if we can't change owner
+        key_file = subdir.join("#{d.dkim_selector}.private")
+        FileUtils.chmod(0640, key_file) if File.exist?(key_file)
       end
     end
 
