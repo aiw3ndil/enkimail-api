@@ -56,14 +56,21 @@ class Domain < ApplicationRecord
     begin
       base_dir = ENV['OPENDKIM_DATA_PATH'] || Rails.root.join("config", "opendkim")
       directory = Pathname.new(base_dir)
-      keys_directory = directory.join("keys")
+      keys_directory = directory.join("keys", name)
       
       FileUtils.mkdir_p(keys_directory) unless Dir.exist?(keys_directory)
 
-      # 1. Exportar llave privada
-      key_file = keys_directory.join("#{name}.private")
+      # 1. Exportar llave privada (Formato mwader/postfix-relay: keys/domain/selector.private)
+      key_file = keys_directory.join("#{dkim_selector}.private")
       File.write(key_file, dkim_private_key)
       File.chmod(0644, key_file)
+      
+      # También guardamos una copia en la raíz de keys por si acaso, pero el estándar es la subcarpeta
+      # File.write(directory.join("keys", "#{name}.private"), dkim_private_key)
+
+      # 2. KeyTable, SigningTable y TrustedHosts
+      # Aunque la imagen mwader/postfix-relay genera estos archivos dinámicamente desde OPENDKIM_DOMAINS,
+      # los mantenemos para otros MTAs o configuraciones personalizadas.
       
       # Función auxiliar para asegurar que la ruta sea un archivo
       ensure_file = ->(path) do
