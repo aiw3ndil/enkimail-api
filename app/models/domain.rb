@@ -21,7 +21,7 @@ class Domain < ApplicationRecord
   end
 
   def set_default_selector
-    self.dkim_selector ||= "mail"
+    self.dkim_selector ||= "enki"
   end
   
   def dkim_record_name
