@@ -65,7 +65,7 @@ services:
       # El valor "*" indica que firme cualquier dominio si encuentra la llave en /etc/opendkim/keys/dominio.private
       OPENDKIM_DOMAINS: "*"
       # Selector unificado con la app
-      OPENDKIM_SELECTOR: enki
+      OPENDKIM_selector: enki
     restart: always
 
 networks:
