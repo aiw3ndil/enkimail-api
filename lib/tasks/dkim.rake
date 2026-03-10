@@ -1,12 +1,19 @@
 namespace :enkimail do
-  desc "Export all verified domain DKIM keys to the MTA shared volume"
+  desc "Export all verified domain DKIM keys and regenerate OpenDKIM config files"
   task export_dkim_keys: :environment do
-    count = 0
+    # First export each domain's private key
     Domain.verified.find_each do |domain|
-      domain.export_dkim_key
-      count += 1
-      puts "Exported key for #{domain.name}"
+      base_dir = ENV['OPENDKIM_DATA_PATH'] || Rails.root.join("config", "opendkim")
+      keys_directory = Pathname.new(base_dir).join("keys", domain.name)
+      FileUtils.mkdir_p(keys_directory)
+      key_file = keys_directory.join("#{domain.dkim_selector}.private")
+      File.write(key_file, domain.dkim_private_key)
+      File.chmod(0640, key_file)
+      puts "Exported key for #{domain.name} (selector: #{domain.dkim_selector})"
     end
-    puts "Finished: #{count} keys exported to config/opendkim/keys/"
+
+    # Then regenerate all shared config files from scratch (clean, no duplicates)
+    Domain.regenerate_opendkim_config
+    puts "Regenerated OpenDKIM config files (KeyTable, SigningTable, TrustedHosts, opendkim.conf)"
   end
 end

@@ -50,6 +50,8 @@ class Domain < ApplicationRecord
     "enkimail-verification=#{verification_token}"
   end
 
+  # Instance method: writes this domain's private key to disk, then
+  # re-generates ALL shared config files from the current DB state.
   def export_dkim_key
     return unless verified?
 
@@ -57,82 +59,75 @@ class Domain < ApplicationRecord
       base_dir = ENV['OPENDKIM_DATA_PATH'] || Rails.root.join("config", "opendkim")
       directory = Pathname.new(base_dir)
       keys_directory = directory.join("keys", name)
-      
-      FileUtils.mkdir_p(keys_directory) unless Dir.exist?(keys_directory)
+      FileUtils.mkdir_p(keys_directory)
 
-      # 1. Exportar llave privada (Formato mwader/postfix-relay: keys/domain/selector.private)
+      # 1. Write private key (mwader/postfix-relay format: keys/<domain>/<selector>.private)
       key_file = keys_directory.join("#{dkim_selector}.private")
       File.write(key_file, dkim_private_key)
-      File.chmod(0644, key_file)
-      
-      # También guardamos una copia en la raíz de keys por si acaso, pero el estándar es la subcarpeta
-      # File.write(directory.join("keys", "#{name}.private"), dkim_private_key)
+      File.chmod(0640, key_file)
 
-      # 2. KeyTable, SigningTable y TrustedHosts
-      # Aunque la imagen mwader/postfix-relay genera estos archivos dinámicamente desde OPENDKIM_DOMAINS,
-      # los mantenemos para otros MTAs o configuraciones personalizadas.
-      
-      # Función auxiliar para asegurar que la ruta sea un archivo
-      ensure_file = ->(path) do
-        system("rm -rf #{path}") if Dir.exist?(path)
-        FileUtils.touch(path) unless File.exist?(path)
-        File.chmod(0644, path)
-      end
+      # 2. Regenerate all shared config files from DB, so we never accumulate stale entries
+      Domain.regenerate_opendkim_config(base_dir)
 
-      # 2. KeyTable
-      path = directory.join("KeyTable")
-      ensure_file.call(path)
-      # Formato: selector._domainkey.domain domain:selector:path_to_private_key
-      line = "#{dkim_selector}._domainkey.#{name} #{name}:#{dkim_selector}:/etc/opendkim/keys/#{name}/#{dkim_selector}.private"
-      lines = File.readlines(path).map(&:strip).reject(&:empty?) rescue []
-      lines << line unless lines.include?(line)
-      File.write(path, lines.join("\n") + "\n")
-      File.chmod(0644, path)
-
-      # 3. SigningTable
-      path = directory.join("SigningTable")
-      ensure_file.call(path)
-      # Formato compatible con postfix-relay: domain selector._domainkey.domain
-      line = "#{name} #{dkim_selector}._domainkey.#{name}"
-      lines = File.readlines(path).map(&:strip).reject(&:empty?) rescue []
-      lines << line unless lines.include?(line)
-      File.write(path, lines.join("\n") + "\n")
-      File.chmod(0644, path)
-
-      # 4. TrustedHosts
-      path = directory.join("TrustedHosts")
-      ensure_file.call(path)
-      hosts_to_add = ["127.0.0.1", "localhost", "172.16.0.0/12", "192.168.0.0/16", "10.0.0.0/8", "0.0.0.0/0", name]
-      existing = File.readlines(path).map(&:strip).reject(&:empty?) rescue []
-      (hosts_to_add - existing).each { |h| existing << h }
-      File.write(path, existing.join("\n") + "\n")
-      File.chmod(0644, path)
-
-      # 5. opendkim.conf (Crucial para que el MTA use nuestras tablas)
-      path = directory.join("opendkim.conf")
-      unless File.exist?(path)
-        content = <<~CONF
-          Syslog          yes
-          UMask           002
-          Domain          *
-          Selector        #{dkim_selector}
-          KeyTable        /etc/opendkim/KeyTable
-          SigningTable    refile:/etc/opendkim/SigningTable
-          ExternalIgnoreList  refile:/etc/opendkim/TrustedHosts
-          InternalHosts       refile:/etc/opendkim/TrustedHosts
-          Canonicalization    relaxed/simple
-          Mode                sv
-          SubDomains          no
-        CONF
-        File.write(path, content)
-        File.chmod(0644, path)
-      end
-      
       Rails.logger.info "DKIM keys exported successfully for #{name}"
     rescue => e
       Rails.logger.error "Failed to export DKIM keys for #{name}: #{e.message}"
-      puts "ERROR: Failed to export DKIM keys for #{name}: #{e.message}"
     end
+  end
+
+  # Class method: regenerates KeyTable, SigningTable, TrustedHosts and opendkim.conf
+  # by reading ALL verified domains from the DB. Call this after any domain change.
+  def self.regenerate_opendkim_config(base_dir = nil)
+    base_dir ||= ENV['OPENDKIM_DATA_PATH'] || Rails.root.join("config", "opendkim")
+    directory = Pathname.new(base_dir)
+    FileUtils.mkdir_p(directory)
+
+    domains = Domain.verified.to_a
+    return if domains.empty?
+
+    # --- KeyTable ---
+    # Format: selector._domainkey.domain  domain:selector:/path/to/key
+    key_table_lines = domains.map do |d|
+      "#{d.dkim_selector}._domainkey.#{d.name} #{d.name}:#{d.dkim_selector}:/etc/opendkim/keys/#{d.name}/#{d.dkim_selector}.private"
+    end
+    File.write(directory.join("KeyTable"), key_table_lines.join("\n") + "\n")
+    File.chmod(0644, directory.join("KeyTable"))
+
+    # --- SigningTable ---
+    # Format: *@domain  selector._domainkey.domain  (wildcard for all subaddresses)
+    signing_table_lines = domains.map do |d|
+      "*@#{d.name} #{d.dkim_selector}._domainkey.#{d.name}"
+    end
+    File.write(directory.join("SigningTable"), signing_table_lines.join("\n") + "\n")
+    File.chmod(0644, directory.join("SigningTable"))
+
+    # --- TrustedHosts ---
+    base_hosts = ["127.0.0.1", "localhost", "172.16.0.0/12", "192.168.0.0/16", "10.0.0.0/8"]
+    domain_hosts = domains.map(&:name)
+    all_hosts = (base_hosts + domain_hosts).uniq
+    File.write(directory.join("TrustedHosts"), all_hosts.join("\n") + "\n")
+    File.chmod(0644, directory.join("TrustedHosts"))
+
+    # --- opendkim.conf ---
+    # Always overwrite so it stays up-to-date with current selector
+    conf_content = <<~CONF
+      Syslog                  yes
+      UMask                   002
+      KeyTable                /etc/opendkim/KeyTable
+      SigningTable            refile:/etc/opendkim/SigningTable
+      ExternalIgnoreList      refile:/etc/opendkim/TrustedHosts
+      InternalHosts           refile:/etc/opendkim/TrustedHosts
+      Canonicalization        relaxed/simple
+      Mode                    sv
+      SubDomains              no
+      OversignHeaders         From
+    CONF
+    File.write(directory.join("opendkim.conf"), conf_content)
+    File.chmod(0644, directory.join("opendkim.conf"))
+
+    Rails.logger.info "OpenDKIM config regenerated for #{domains.size} domain(s)"
+  rescue => e
+    Rails.logger.error "Failed to regenerate OpenDKIM config: #{e.message}"
   end
 
   def dns_instructions
