@@ -65,10 +65,9 @@ services:
       POSTFIX_inet_protocols: ipv4
       POSTFIX_myhostname: mail.enkimail.com
       POSTFIX_mynetworks: 127.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 10.0.0.0/8
-      # Desactivamos milters por completo para desbloquear el envio
-      POSTFIX_smtpd_milters: ""
-      POSTFIX_non_smtpd_milters: ""
-      OPENDKIM_DOMAINS: ""
+      # Habilitamos DKIM
+      POSTFIX_smtpd_milters: inet:127.0.0.1:12301
+      POSTFIX_non_smtpd_milters: inet:127.0.0.1:12301
     restart: always
 
   # Base de Datos

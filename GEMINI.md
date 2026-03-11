@@ -17,3 +17,4 @@ Este proyecto es una plataforma de email marketing "humilde" estilo Brevo.
 5. Todos los comentarios del codigo deberan estar en inglés.
 6. Los mesajes de commit estarán en inglés. Usando conventional commit.
 7. Documenta siempre que sea posible.
+8. Los comentarios en el codigo irán en inglés.

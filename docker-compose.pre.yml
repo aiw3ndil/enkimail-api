@@ -39,7 +39,9 @@ services:
 
   # Postfix para envío real
   postfix:
-    image: mwader/postfix-relay
+    build:
+      context: .
+      dockerfile: Dockerfile.postfix
     container_name: enkimail-postfix
     ports:
       - "2525:25" # Exponemos el 25 internamente como 25, pero al host como 2525 por si acaso
@@ -51,9 +53,8 @@ services:
       POSTFIX_myhostname: mail.enkimail.com
       # Eliminamos fd00::/8 para evitar el error de "unsupported dictionary type: fd00"
       POSTFIX_mynetworks: 127.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 10.0.0.0/8
-      # Necesario para activar el servicio de OpenDKIM en el contenedor
-      OPENDKIM_DOMAINS: "truek.xyz=enki"
-      OPENDKIM_selector: enki
+      POSTFIX_smtpd_milters: inet:127.0.0.1:12301
+      POSTFIX_non_smtpd_milters: inet:127.0.0.1:12301
     restart: always
 
   db:

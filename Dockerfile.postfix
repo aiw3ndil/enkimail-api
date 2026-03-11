@@ -3,37 +3,37 @@ FROM mwader/postfix-relay:latest
 
 # Script para esperar a las llaves de Rails y configurar OpenDKIM
 RUN echo '#!/bin/bash\n\
-echo "Esperando a que Rails exporte las llaves DKIM..."\n\
-until [ -f "/etc/opendkim/keys/truek.xyz/enki.private" ]; do\n\
+  echo "Esperando a que Rails exporte las llaves DKIM..."\n\
+  until [ -f "/etc/opendkim/opendkim.conf" ] && [ -n \"$(find /etc/opendkim/keys -name \\"*.private\\" 2>/dev/null | head -n 1)\" ]; do\n\
   sleep 2\n\
-done\n\
-echo "Llaves detectadas. Ajustando permisos..."\n\
-mkdir -p /run/opendkim\n\
-chown -R root:root /etc/opendkim\n\
-chmod -R 0755 /etc/opendkim\n\
-chown opendkim:opendkim /run/opendkim\n\
-chmod 0755 /run/opendkim\n\
-\n\
-echo "Arrancando OpenDKIM con puerto TCP 12301..."\n\
-# Matamos CUALQUIER proceso previo de opendkim\n\
-pkill -9 opendkim || true\n\
-rm -f /run/opendkim/opendkim.pid\n\
-\n\
-# Lanzamos OpenDKIM como root para garantizar acceso a las llaves montadas\n\
-# El archivo opendkim.conf generado por Rails ya define el puerto 12301\n\
-/usr/sbin/opendkim -x /etc/opendkim/opendkim.conf -P /run/opendkim/opendkim.pid\n\
-\n\
-# Esperar a que OpenDKIM esté escuchando (usando /dev/tcp para evitar dependencia de nc)\n\
-echo "Verificando puerto 12301..."\n\
-for i in {1..10}; do\n\
+  done\n\
+  echo "Llaves detectadas. Ajustando permisos..."\n\
+  mkdir -p /run/opendkim\n\
+  chown -R root:root /etc/opendkim\n\
+  chmod -R 0755 /etc/opendkim\n\
+  chown opendkim:opendkim /run/opendkim\n\
+  chmod 0755 /run/opendkim\n\
+  \n\
+  echo "Arrancando OpenDKIM con puerto TCP 12301..."\n\
+  # Matamos CUALQUIER proceso previo de opendkim\n\
+  pkill -9 opendkim || true\n\
+  rm -f /run/opendkim/opendkim.pid\n\
+  \n\
+  # Lanzamos OpenDKIM como root para garantizar acceso a las llaves montadas\n\
+  # El archivo opendkim.conf generado por Rails ya define el puerto 12301\n\
+  /usr/sbin/opendkim -x /etc/opendkim/opendkim.conf -P /run/opendkim/opendkim.pid\n\
+  \n\
+  # Esperar a que OpenDKIM esté escuchando (usando /dev/tcp para evitar dependencia de nc)\n\
+  echo "Verificando puerto 12301..."\n\
+  for i in {1..10}; do\n\
   if timeout 1 bash -c "cat < /dev/null > /dev/tcp/127.0.0.1/12301" 2>/dev/null; then\n\
-    echo "OpenDKIM escuchando en el puerto 12301."\n\
-    break\n\
+  echo "OpenDKIM escuchando en el puerto 12301."\n\
+  break\n\
   fi\n\
   echo "Esperando a OpenDKIM... ($i/10)"\n\
   sleep 1\n\
-done\n\
-' > /usr/local/bin/init-dkim.sh && chmod +x /usr/local/bin/init-dkim.sh
+  done\n\
+  ' > /usr/local/bin/init-dkim.sh && chmod +x /usr/local/bin/init-dkim.sh
 
 # Inyectar nuestro script en el arranque del contenedor antes de Postfix
-RUN sed -i '/^Starting OpenDKIM/i /usr/local/bin/init-dkim.sh' /root/run
+RUN sed -i '/^service postfix start/i /usr/local/bin/init-dkim.sh \\\n' /root/run
