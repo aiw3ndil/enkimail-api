@@ -67,6 +67,7 @@ services:
       # Desactivamos milters por completo
       POSTFIX_smtpd_milters: ""
       POSTFIX_non_smtpd_milters: ""
+      POSTFIX_milter_default_action: accept
       OPENDKIM_DOMAINS: ""
     restart: always
 

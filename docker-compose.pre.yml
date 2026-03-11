@@ -3,7 +3,7 @@ services:
   web:
     build: .
     container_name: enkimail-app
-    command: /usr/bin/entrypoint.sh rails s -p 3001 -b '192.168.0.101'
+    command: /usr/bin/entrypoint.sh rails s -p 3001 -b '0.0.0.0'
     volumes:
       - .:/app
     ports:
@@ -55,6 +55,7 @@ services:
       POSTFIX_mynetworks: 127.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 10.0.0.0/8
       POSTFIX_smtpd_milters: inet:127.0.0.1:12301
       POSTFIX_non_smtpd_milters: inet:127.0.0.1:12301
+      POSTFIX_milter_default_action: accept
     restart: always
 
   db:
