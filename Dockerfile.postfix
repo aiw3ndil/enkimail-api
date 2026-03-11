@@ -4,42 +4,45 @@ FROM mwader/postfix-relay:latest
 # Script para esperar a las llaves de Rails y configurar OpenDKIM
 RUN echo '#!/bin/bash\n\
   echo "Esperando a que Rails exporte las llaves DKIM..."\n\
-  # Wait until /etc/opendkim/opendkim.conf exists AND /etc/opendkim/keys is not empty\n\
-  until [ -f "/etc/opendkim/opendkim.conf" ] && [ -n "$(ls -A /etc/opendkim/keys 2>/dev/null)" ]; do\n\
-  sleep 2\n\
+  while true; do\n\
+  echo "--- DEBUG: Estado de /etc/opendkim ---"\n\
+  ls -la /etc/opendkim || echo "/etc/opendkim no existe todavía"\n\
+  if [ -f "/etc/opendkim/opendkim.conf" ] && [ -d "/etc/opendkim/keys" ] && [ -n "$(ls -A /etc/opendkim/keys 2>/dev/null)" ]; then\n\
+  echo "Estructura de DKIM detectada correctamente."\n\
+  break\n\
+  fi\n\
+  echo "Esperando configuración y llaves... (reintentando en 5s)"\n\
+  sleep 5\n\
   done\n\
+  \n\
   echo "Llaves detectadas. Estructura encontrada:"\n\
   ls -lR /etc/opendkim/keys\n\
   \n\
   echo "Ajustando permisos y propiedad..."\n\
   mkdir -p /run/opendkim\n\
-  # Determinamos el usuario de opendkim (suele ser opendkim o el del proceso postfix)\n\
-  DKIM_USER=$(grep "^Socket" /etc/opendkim/opendkim.conf | grep -o "[:][^@]*" | cut -d: -f2 || echo "opendkim")\n\
-  # Si no lo encontramos, usamos opendkim por defecto\n\
-  ID_OPENDKIM=$(id -u opendkim 2>/dev/null || echo "0")\n\
   \n\
+  # Propiedad radical para evitar fallos de lectura de OpenDKIM\n\
   chown -R root:root /etc/opendkim\n\
-  # Las llaves deben ser legibles por el usuario opendkim\n\
+  chmod -R 0755 /etc/opendkim\n\
+  \n\
+  # El usuario suele ser opendkim\n\
+  ID_OPENDKIM=$(id -u opendkim 2>/dev/null || echo "0")\n\
   if [ "$ID_OPENDKIM" != "0" ]; then\n\
   chown -R opendkim:opendkim /etc/opendkim/keys\n\
-  fi\n\
-  \n\
-  chmod -R 0755 /etc/opendkim\n\
   find /etc/opendkim/keys -type f -exec chmod 0640 {} \\;\n\
   find /etc/opendkim/keys -type d -exec chmod 0750 {} \\;\n\
+  fi\n\
   \n\
   chown opendkim:opendkim /run/opendkim\n\
   chmod 0755 /run/opendkim\n\
   \n\
   echo "Arrancando OpenDKIM con puerto TCP 12301..."\n\
-  # Matamos CUALQUIER proceso previo de opendkim\n\
   pkill -9 opendkim || true\n\
   rm -f /run/opendkim/opendkim.pid\n\
   \n\
   # Lanzamos OpenDKIM\n\
   /usr/sbin/opendkim -x /etc/opendkim/opendkim.conf -P /run/opendkim/opendkim.pid\n\
   \n\
-  # Esperar a que OpenDKIM esté escuchando\n\
   echo "Verificando puerto 12301..."\n\
   for i in {1..10}; do\n\
   if timeout 1 bash -c "cat < /dev/null > /dev/tcp/127.0.0.1/12301" 2>/dev/null; then\n\
