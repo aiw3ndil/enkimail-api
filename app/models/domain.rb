@@ -64,7 +64,7 @@ class Domain < ApplicationRecord
       # 1. Write private key (mwader/postfix-relay format: keys/<domain>/<selector>.private)
       key_file = keys_directory.join("#{dkim_selector}.private")
       File.write(key_file, dkim_private_key)
-      File.chmod(0600, key_file)
+      File.chmod(0644, key_file)
 
       # 2. Regenerate all shared config files from DB, so we never accumulate stale entries
       Domain.regenerate_opendkim_config(base_dir)
@@ -126,6 +126,7 @@ class Domain < ApplicationRecord
       Mode                    sv
       SubDomains              no
       OversignHeaders         From
+      RequireSafeKeys         False
       # Debugging
       SyslogSuccess           yes
       LogWhy                  yes
@@ -143,7 +144,7 @@ class Domain < ApplicationRecord
         if Dir.exist?(subdir)
           FileUtils.chmod(0755, subdir)
           key_file = subdir.join("#{d.dkim_selector}.private")
-          File.chmod(0640, key_file) if File.exist?(key_file)
+          File.chmod(0644, key_file) if File.exist?(key_file)
         end
       end
     end
