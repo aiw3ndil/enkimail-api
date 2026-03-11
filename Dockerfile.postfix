@@ -1,16 +1,21 @@
 FROM mwader/postfix-relay:latest
 
-# Fix DKIM key permissions before OpenDKIM starts
+# Create a script to fix permissions and ownership of DKIM keys
 RUN mkdir -p /usr/local/bin && \
     echo '#!/bin/bash\n\
 if [ -d "/etc/opendkim/keys" ]; then\n\
+  echo "Fixing DKIM permissions..."\n\
   find /etc/opendkim/keys -name "*.private" -type f -exec chmod 600 {} \;\n\
   find /etc/opendkim/keys -name "*.private" -type f -exec chown opendkim:opendkim {} \;\n\
-fi\n' > /usr/local/bin/fix-dkim-perms.sh && \
+  # Ensure the directory itself is accessible\n\
+  find /etc/opendkim/keys -type d -exec chmod 755 {} \;\n\
+fi' > /usr/local/bin/fix-dkim-perms.sh && \
     chmod +x /usr/local/bin/fix-dkim-perms.sh
 
-# Patch the startup script to fix permissions and force our config file
-RUN if [ -f /root/run ]; then \
-      sed -i '/^Starting OpenDKIM/i /usr/local/bin/fix-dkim-perms.sh' /root/run && \
-      sed -i 's|/usr/sbin/opendkim -u opendkim|/usr/sbin/opendkim -u opendkim -x /etc/opendkim/opendkim.conf|g' /root/run; \
-    fi
+# Create a wrapper for opendkim to force our configuration
+RUN mv /usr/sbin/opendkim /usr/sbin/opendkim.real && \
+    echo '#!/bin/bash\n\
+/usr/local/bin/fix-dkim-perms.sh\n\
+echo "Starting OpenDKIM with custom config..."\n\
+exec /usr/sbin/opendkim.real -x /etc/opendkim/opendkim.conf "$@"' > /usr/sbin/opendkim && \
+    chmod +x /usr/sbin/opendkim

@@ -65,11 +65,8 @@ services:
       POSTFIX_inet_protocols: ipv4
       POSTFIX_myhostname: mail.enkimail.com
       POSTFIX_mynetworks: 127.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 10.0.0.0/8
-      # Variables oficiales de mwader/postfix-relay
-      OPENDKIM_DOMAINS: "truek.xyz=enki"
-      OPENDKIM_Selector: enki
-      OPENDKIM_Canonicalization: relaxed/simple
-      OPENDKIM_RequireSafeKeys: "no"
+      # Evita que la imagen intente generar llaves automáticas
+      OPENDKIM_DOMAINS: ""
     restart: always
 
   # Base de Datos
