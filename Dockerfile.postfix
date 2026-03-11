@@ -4,7 +4,8 @@ FROM mwader/postfix-relay:latest
 # Script para esperar a las llaves de Rails y configurar OpenDKIM
 RUN echo '#!/bin/bash\n\
   echo "Esperando a que Rails exporte las llaves DKIM..."\n\
-  until [ -f "/etc/opendkim/opendkim.conf" ] && [ -n \"$(find /etc/opendkim/keys -name \\"*.private\\" 2>/dev/null | head -n 1)\" ]; do\n\
+  # Wait until /etc/opendkim/opendkim.conf exists AND /etc/opendkim/keys is not empty\n\
+  until [ -f "/etc/opendkim/opendkim.conf" ] && [ -n "$(ls -A /etc/opendkim/keys 2>/dev/null)" ]; do\n\
   sleep 2\n\
   done\n\
   echo "Llaves detectadas. Ajustando permisos..."\n\
