@@ -26,7 +26,7 @@ ls -lR "$DKIM_PATH"
 
 # Asegurar permisos del volumen compartido para que Postfix pueda leerlo
 if [ -d "$DKIM_PATH" ]; then
-  chmod -R 0755 "$DKIM_PATH"
+  chmod -R 0777 "$DKIM_PATH"
 fi
 
 # Ejecutar el comando principal (el CMD del Dockerfile o del compose)

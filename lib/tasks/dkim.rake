@@ -9,7 +9,12 @@ namespace :enkimail do
           next
         end
         base_dir = ENV['OPENDKIM_DATA_PATH'] || Rails.root.join("config", "opendkim")
-        keys_directory = Pathname.new(base_dir).join("keys", domain.name)
+        keys_dir = Pathname.new(base_dir).join("keys")
+        
+        # Force clean keys directory to ensure volume sync triggers correctly
+        FileUtils.mkdir_p(keys_dir)
+        
+        keys_directory = keys_dir.join(domain.name)
         FileUtils.mkdir_p(keys_directory)
         key_file = keys_directory.join("#{domain.dkim_selector}.private")
         File.write(key_file, domain.dkim_private_key)
