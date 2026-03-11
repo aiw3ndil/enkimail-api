@@ -17,11 +17,13 @@ bundle exec rails db:prepare
 
 # Exportar llaves DKIM verificadas al volumen compartido
 echo "Exporting DKIM keys..."
+# Limpiamos el archivo de configuración antiguo para forzar uno nuevo con TCP
+rm -f config/opendkim/opendkim.conf
 bundle exec rake enkimail:export_dkim_keys RAILS_ENV=${RAILS_ENV:-production} DISABLE_DATABASE_ENVIRONMENT_CHECK=1 || echo "DKIM export skipped or failed."
 
 # Asegurar permisos del volumen compartido para que Postfix pueda leerlo
-if [ -d "/config/opendkim" ]; then
-  chmod -R 0755 /config/opendkim
+if [ -d "config/opendkim" ]; then
+  chmod -R 0755 config/opendkim
 fi
 
 # Ejecutar el comando principal (el CMD del Dockerfile o del compose)
