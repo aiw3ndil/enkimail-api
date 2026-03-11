@@ -117,7 +117,7 @@ class Domain < ApplicationRecord
       Syslog                  yes
       LogWhy                  yes
       UMask                   002
-      Socket                  inet:12301@127.0.0.1
+      Socket                  inet:12301@0.0.0.0
       KeyTable                /etc/opendkim/KeyTable
       SigningTable            refile:/etc/opendkim/SigningTable
       ExternalIgnoreList      refile:/etc/opendkim/TrustedHosts
@@ -126,17 +126,23 @@ class Domain < ApplicationRecord
       Mode                    sv
       SubDomains              no
       OversignHeaders         From
+      UserID                  opendkim
     CONF
     File.write(directory.join("opendkim.conf"), conf_content)
     File.chmod(0644, directory.join("opendkim.conf"))
 
     # Ensure keys directory and subdirectories are traversable (0755)
+    # and private keys are readable by opendkim group (0640)
     keys_dir = directory.join("keys")
     if Dir.exist?(keys_dir)
       FileUtils.chmod(0755, keys_dir)
       domains.each do |d|
         subdir = keys_dir.join(d.name)
-        FileUtils.chmod(0755, subdir) if Dir.exist?(subdir)
+        if Dir.exist?(subdir)
+          FileUtils.chmod(0755, subdir)
+          key_file = subdir.join("#{d.dkim_selector}.private")
+          File.chmod(0640, key_file) if File.exist?(key_file)
+        end
       end
     end
 
