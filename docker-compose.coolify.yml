@@ -65,11 +65,12 @@ services:
       POSTFIX_inet_protocols: ipv4
       POSTFIX_myhostname: mail.enkimail.com
       POSTFIX_mynetworks: 127.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 10.0.0.0/8
-      # Forzar a Postfix a usar el Milter en la IP local
+      # Milters conectados vía IP local estable
       POSTFIX_smtpd_milters: inet:127.0.0.1:12301
       POSTFIX_non_smtpd_milters: inet:127.0.0.1:12301
-      # Evita que la imagen intente generar llaves automáticas
-      OPENDKIM_DOMAINS: ""
+      # Activa el servicio OpenDKIM en el contenedor
+      OPENDKIM_DOMAINS: "truek.xyz=enki"
+      OPENDKIM_selector: enki
     restart: always
 
   # Base de Datos
