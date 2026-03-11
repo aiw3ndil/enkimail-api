@@ -6,6 +6,7 @@ services:
     command: /usr/bin/entrypoint.sh rails s -p 3001 -b '0.0.0.0'
     volumes:
       - .:/app
+      - opendkim_data:/etc/opendkim
     ports:
       - "3001:3001"
     depends_on:
@@ -16,6 +17,7 @@ services:
       DATABASE_URL: postgres://postgres:password@db:5432/enkimail_development
       SMTP_ADDRESS: mailpit
       SMTP_PORT: 1025
+      OPENDKIM_DATA_PATH: /etc/opendkim
       TZ: Europe/Helsinki
 
   # Sidekiq
@@ -25,6 +27,7 @@ services:
     command: bundle exec sidekiq
     volumes:
       - .:/app
+      - opendkim_data:/etc/opendkim
     depends_on:
       - db
       - redis
@@ -34,6 +37,7 @@ services:
       DATABASE_URL: postgres://postgres:password@db:5432/enkimail_development
       SMTP_ADDRESS: mailpit
       SMTP_PORT: 1025
+      OPENDKIM_DATA_PATH: /etc/opendkim
       TZ: Europe/Helsinki
       RAILS_ENV: development
 
@@ -58,7 +62,7 @@ services:
       - "2525:25" # Exponemos el 25 internamente como 25, pero al host como 2525 por si acaso
     volumes:
       - postfix_queue:/var/spool/postfix
-      - ./config/opendkim:/etc/opendkim
+      - enkimail_dkim_sync:/etc/opendkim
     environment:
       POSTFIX_inet_protocols: ipv4
       POSTFIX_myhostname: mail.enkimail.com
@@ -95,3 +99,4 @@ volumes:
   redis_data:
   postfix_queue:
   opendkim_keys:
+  enkimail_dkim_sync:

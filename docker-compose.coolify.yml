@@ -60,7 +60,7 @@ services:
       - 1.1.1.1
     volumes:
       - postfix_queue:/var/spool/postfix
-      - opendkim_data:/etc/opendkim
+      - enkimail_dkim_sync:/etc/opendkim
     environment:
       POSTFIX_inet_protocols: ipv4
       POSTFIX_myhostname: mail.enkimail.com
@@ -101,4 +101,4 @@ volumes:
   postfix_queue:
   postgres_data:
   redis_data:
-  opendkim_data:
+  enkimail_dkim_sync:
