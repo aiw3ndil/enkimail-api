@@ -17,9 +17,19 @@ echo "Arrancando OpenDKIM con puerto TCP 12301..."\n\
 pkill -9 opendkim || true\n\
 # Limpiamos archivos de PID antiguos y sockets huérfanos\n\
 rm -f /run/opendkim/opendkim.pid /run/opendkim/opendkim.sock /var/run/opendkim/opendkim.pid\n\
+mkdir -p /run/opendkim\n\
+chown opendkim:opendkim /run/opendkim\n\
 # Lanzamos OpenDKIM forzando el puerto TCP basado en el archivo generado por Rails\n\
 /usr/sbin/opendkim -u opendkim -x /etc/opendkim/opendkim.conf -P /run/opendkim/opendkim.pid\n\
+\n\
+# Esperar a que OpenDKIM esté escuchando antes de salir\n\
+echo "Esperando a que OpenDKIM este listo en el puerto 12301..."\n\
+until nc -z 127.0.0.1 12301; do\n\
+  sleep 1\n\
+done\n\
+echo "OpenDKIM listo."\n\
 ' > /usr/local/bin/init-dkim.sh && chmod +x /usr/local/bin/init-dkim.sh
 
-# Inyectar nuestro script en el arranque del contenedor antes de Postfix
-RUN sed -i '/^Starting OpenDKIM/i /usr/local/bin/init-dkim.sh &' /root/run
+# Inyectar nuestro script en el arranque del contenedor de forma SINCRONA
+# Esto bloquea el arranque de Postfix hasta que el script termine (y OpenDKIM esté listo)
+RUN sed -i '/^Starting OpenDKIM/i /usr/local/bin/init-dkim.sh' /root/run

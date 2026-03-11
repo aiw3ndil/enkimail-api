@@ -117,7 +117,7 @@ class Domain < ApplicationRecord
       Syslog                  yes
       LogWhy                  yes
       UMask                   002
-      Socket                  inet:12301@127.0.0.1
+      Socket                  inet:12301@0.0.0.0
       KeyTable                /etc/opendkim/KeyTable
       SigningTable            refile:/etc/opendkim/SigningTable
       ExternalIgnoreList      refile:/etc/opendkim/TrustedHosts
