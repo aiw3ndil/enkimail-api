@@ -3,14 +3,15 @@ FROM mwader/postfix-relay:latest
 
 # Script para esperar a las llaves de Rails y configurar OpenDKIM
 RUN echo '#!/bin/bash\n\
-  echo "Iniciando sincronización DKIM..."\n\
+  DKIM_BASE_PATH="${DKIM_PATH:-/etc/dkim-shared}"\n\
+  echo "Iniciando sincronización DKIM en $DKIM_BASE_PATH..."\n\
   MAX_RETRIES=15\n\
   RETRY_COUNT=0\n\
   while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do\n\
-  echo "--- DEBUG: Estado de /etc/opendkim (Intento $RETRY_COUNT/$MAX_RETRIES) ---"\n\
-  ls -lR /etc/opendkim || echo "/etc/opendkim no disponible"\n\
+  echo "--- DEBUG: Estado de $DKIM_BASE_PATH (Intento $RETRY_COUNT/$MAX_RETRIES) ---"\n\
+  ls -lR "$DKIM_BASE_PATH" || echo "$DKIM_BASE_PATH no disponible"\n\
   \n\
-  if [ -f "/etc/opendkim/opendkim.conf" ] && [ -d "/etc/opendkim/keys" ] && [ -n "$(ls -A /etc/opendkim/keys 2>/dev/null)" ]; then\n\
+  if [ -f "$DKIM_BASE_PATH/opendkim.conf" ] && [ -d "$DKIM_BASE_PATH/keys" ] && [ -n "$(ls -A "$DKIM_BASE_PATH/keys" 2>/dev/null)" ]; then\n\
   echo "Estructura de DKIM detectada."\n\
   break\n\
   fi\n\
@@ -21,23 +22,21 @@ RUN echo '#!/bin/bash\n\
   \n\
   echo "Ajustando permisos y arrancando procesos..."\n\
   mkdir -p /run/opendkim\n\
-  chown -R root:root /etc/opendkim\n\
-  chmod -R 0755 /etc/opendkim\n\
   \n\
   # Propiedad para OpenDKIM si el usuario existe\n\
   if id "opendkim" >/dev/null 2>&1; then\n\
-  chown -R opendkim:opendkim /etc/opendkim/keys 2>/dev/null || true\n\
+  chown -R opendkim:opendkim "$DKIM_BASE_PATH" 2>/dev/null || true\n\
   chown opendkim:opendkim /run/opendkim\n\
   fi\n\
   \n\
   pkill -9 opendkim || true\n\
   rm -f /run/opendkim/opendkim.pid\n\
   \n\
-  if [ -f "/etc/opendkim/opendkim.conf" ]; then\n\
-  echo "Lanzando OpenDKIM..."\n\
-  /usr/sbin/opendkim -x /etc/opendkim/opendkim.conf -P /run/opendkim/opendkim.pid\n\
+  if [ -f "$DKIM_BASE_PATH/opendkim.conf" ]; then\n\
+  echo "Lanzando OpenDKIM con la configuración de $DKIM_BASE_PATH/opendkim.conf..."\n\
+  /usr/sbin/opendkim -x "$DKIM_BASE_PATH/opendkim.conf" -P /run/opendkim/opendkim.pid\n\
   else\n\
-  echo "ADVERTENCIA: No se encontró opendkim.conf, OpenDKIM no se iniciará."\n\
+  echo "ADVERTENCIA: No se encontró $DKIM_BASE_PATH/opendkim.conf, OpenDKIM no se iniciará."\n\
   fi\n\
   \n\
   echo "Proceso de inicio DKIM finalizado. Continuando con Postfix..."\n\

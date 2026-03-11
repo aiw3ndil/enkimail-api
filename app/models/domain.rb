@@ -88,7 +88,7 @@ class Domain < ApplicationRecord
     # --- KeyTable ---
     # Format: selector._domainkey.domain  domain:selector:/path/to/key
     key_table_lines = domains.map do |d|
-      "#{d.dkim_selector}._domainkey.#{d.name} #{d.name}:#{d.dkim_selector}:/etc/opendkim/keys/#{d.name}/#{d.dkim_selector}.private"
+      "#{d.dkim_selector}._domainkey.#{d.name} #{d.name}:#{d.dkim_selector}:#{base_dir}/keys/#{d.name}/#{d.dkim_selector}.private"
     end
     File.write(directory.join("KeyTable"), key_table_lines.join("\n") + "\n")
     File.chmod(0644, directory.join("KeyTable"))
@@ -118,10 +118,10 @@ class Domain < ApplicationRecord
       LogWhy                  yes
       UMask                   002
       Socket                  inet:12301@127.0.0.1
-      KeyTable                /etc/opendkim/KeyTable
-      SigningTable            refile:/etc/opendkim/SigningTable
-      ExternalIgnoreList      refile:/etc/opendkim/TrustedHosts
-      InternalHosts           refile:/etc/opendkim/TrustedHosts
+      KeyTable                #{base_dir}/KeyTable
+      SigningTable            refile:#{base_dir}/SigningTable
+      ExternalIgnoreList      refile:#{base_dir}/TrustedHosts
+      InternalHosts           refile:#{base_dir}/TrustedHosts
       Canonicalization        relaxed/simple
       Mode                    sv
       SubDomains              no

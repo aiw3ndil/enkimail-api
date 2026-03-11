@@ -9,9 +9,9 @@ services:
       - 8.8.8.1
       - 1.1.1.1
     volumes:
-      - enkimail_dkim_sync:/etc/opendkim
+      - enkimail_dkim_sync:/etc/dkim-shared
     environment:
-      OPENDKIM_DATA_PATH: /etc/opendkim
+      OPENDKIM_DATA_PATH: /etc/dkim-shared
       SMTP_ADDRESS: postfix
       SMTP_PORT: 25
       SMTP_DOMAIN: enkimail.com
@@ -36,9 +36,9 @@ services:
       - 8.8.8.8
       - 1.1.1.1
     volumes:
-      - enkimail_dkim_sync:/etc/opendkim
+      - enkimail_dkim_sync:/etc/dkim-shared
     environment:
-      OPENDKIM_DATA_PATH: /etc/opendkim
+      OPENDKIM_DATA_PATH: /etc/dkim-shared
       SMTP_ADDRESS: postfix
       SMTP_PORT: 25
       SMTP_DOMAIN: enkimail.com
@@ -60,7 +60,7 @@ services:
       - 1.1.1.1
     volumes:
       - postfix_queue:/var/spool/postfix
-      - enkimail_dkim_sync:/etc/opendkim
+      - enkimail_dkim_sync:/etc/dkim-shared
     environment:
       POSTFIX_inet_protocols: ipv4
       POSTFIX_myhostname: mail.enkimail.com
@@ -69,6 +69,8 @@ services:
       POSTFIX_smtpd_milters: inet:127.0.0.1:12301
       POSTFIX_non_smtpd_milters: inet:127.0.0.1:12301
       POSTFIX_milter_default_action: accept
+      # Pass the shared path to the init script
+      DKIM_PATH: /etc/dkim-shared
     restart: always
 
   # Base de Datos

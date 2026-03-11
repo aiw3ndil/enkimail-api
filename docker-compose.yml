@@ -6,7 +6,7 @@ services:
     command: /usr/bin/entrypoint.sh rails s -p 3001 -b '0.0.0.0'
     volumes:
       - .:/app
-      - enkimail_dkim_sync:/etc/opendkim
+      - enkimail_dkim_sync:/etc/dkim-shared
     ports:
       - "3001:3001"
     depends_on:
@@ -17,7 +17,7 @@ services:
       DATABASE_URL: postgres://postgres:password@db:5432/enkimail_development
       SMTP_ADDRESS: mailpit
       SMTP_PORT: 1025
-      OPENDKIM_DATA_PATH: /etc/opendkim
+      OPENDKIM_DATA_PATH: /etc/dkim-shared
       TZ: Europe/Helsinki
 
   # Sidekiq
@@ -27,7 +27,7 @@ services:
     command: bundle exec sidekiq
     volumes:
       - .:/app
-      - enkimail_dkim_sync:/etc/opendkim
+      - enkimail_dkim_sync:/etc/dkim-shared
     depends_on:
       - db
       - redis
@@ -37,7 +37,7 @@ services:
       DATABASE_URL: postgres://postgres:password@db:5432/enkimail_development
       SMTP_ADDRESS: mailpit
       SMTP_PORT: 1025
-      OPENDKIM_DATA_PATH: /etc/opendkim
+      OPENDKIM_DATA_PATH: /etc/dkim-shared
       TZ: Europe/Helsinki
       RAILS_ENV: development
 
@@ -62,7 +62,7 @@ services:
       - "2525:25" # Exponemos el 25 internamente como 25, pero al host como 2525 por si acaso
     volumes:
       - postfix_queue:/var/spool/postfix
-      - enkimail_dkim_sync:/etc/opendkim
+      - enkimail_dkim_sync:/etc/dkim-shared
     environment:
       POSTFIX_inet_protocols: ipv4
       POSTFIX_myhostname: mail.enkimail.com
@@ -73,6 +73,7 @@ services:
       POSTFIX_non_smtpd_milters: ""
       POSTFIX_milter_default_action: accept
       OPENDKIM_DOMAINS: ""
+      DKIM_PATH: /etc/dkim-shared
     restart: always
 
   db:
