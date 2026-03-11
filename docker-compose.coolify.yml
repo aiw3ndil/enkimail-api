@@ -68,6 +68,7 @@ services:
       # Habilitamos DKIM
       POSTFIX_smtpd_milters: inet:127.0.0.1:12301
       POSTFIX_non_smtpd_milters: inet:127.0.0.1:12301
+      POSTFIX_milter_default_action: accept
     restart: always
 
   # Base de Datos
