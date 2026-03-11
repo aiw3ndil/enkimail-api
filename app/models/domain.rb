@@ -117,7 +117,7 @@ class Domain < ApplicationRecord
       Syslog                  yes
       LogWhy                  yes
       UMask                   002
-      Socket                  inet:12301@0.0.0.0
+      Socket                  inet:12301@127.0.0.1
       KeyTable                /etc/opendkim/KeyTable
       SigningTable            refile:/etc/opendkim/SigningTable
       ExternalIgnoreList      refile:/etc/opendkim/TrustedHosts
@@ -126,7 +126,6 @@ class Domain < ApplicationRecord
       Mode                    sv
       SubDomains              no
       OversignHeaders         From
-      UserID                  opendkim
     CONF
     File.write(directory.join("opendkim.conf"), conf_content)
     File.chmod(0644, directory.join("opendkim.conf"))
