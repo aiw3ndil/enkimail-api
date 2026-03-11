@@ -69,8 +69,8 @@ services:
       # Cambiamos el selector a 'enki' para que coincida con la app y el estándar
       OPENDKIM_selector: enki
       # Forzamos a Postfix a usar el socket Unix para OpenDKIM
-      POSTFIX_smtpd_milters: unix:/run/opendkim/opendkim.sock
-      POSTFIX_non_smtpd_milters: unix:/run/opendkim/opendkim.sock
+      POSTFIX_smtpd_milters: unix:/opendkim/opendkim.sock
+      POSTFIX_non_smtpd_milters: unix:/opendkim/opendkim.sock
     restart: always
 
   db:
