@@ -3,25 +3,24 @@ FROM mwader/postfix-relay:latest
 # Script para esperar a las llaves de Rails y configurar OpenDKIM
 RUN echo '#!/bin/bash\n\
 echo "Esperando a que Rails exporte las llaves DKIM..."\n\
-until [ -f "/etc/opendkim/keys/truek.xyz/enki.private" ]; do
-  sleep 2
-done
-echo "Llaves detectadas. Ajustando permisos..."
-mkdir -p /var/spool/postfix/opendkim
-chown opendkim:opendkim /var/spool/postfix/opendkim
-chmod 0750 /var/spool/postfix/opendkim
-# Add postfix user to opendkim group so it can read the socket
-adduser postfix opendkim
-
-chown -R opendkim:opendkim /etc/opendkim
-chmod -R 0750 /etc/opendkim
-find /etc/opendkim/keys -name "*.private" -type f -exec chmod 600 {} \;
-
-echo "Arrancando OpenDKIM con configuracion forzada..."
-# Matamos cualquier proceso previo y lanzamos el nuestro con relaxed/simple
-pkill -9 opendkim
-/usr/sbin/opendkim -u opendkim -x /etc/opendkim/opendkim.conf -P /run/opendkim/opendkim.pid
-
+until [ -f "/etc/opendkim/keys/truek.xyz/enki.private" ]; do\n\
+  sleep 2\n\
+done\n\
+echo "Llaves detectadas. Ajustando permisos..."\n\
+mkdir -p /var/spool/postfix/opendkim\n\
+chown opendkim:opendkim /var/spool/postfix/opendkim\n\
+chmod 0750 /var/spool/postfix/opendkim\n\
+# Add postfix user to opendkim group so it can read the socket\n\
+adduser postfix opendkim\n\
+\n\
+chown -R opendkim:opendkim /etc/opendkim\n\
+chmod -R 0750 /etc/opendkim\n\
+find /etc/opendkim/keys -name "*.private" -type f -exec chmod 600 {} \;\n\
+\n\
+echo "Arrancando OpenDKIM con configuracion forzada..."\n\
+# Matamos cualquier proceso previo y lanzamos el nuestro con relaxed/simple\n\
+pkill -9 opendkim\n\
+/usr/sbin/opendkim -u opendkim -x /etc/opendkim/opendkim.conf -P /run/opendkim/opendkim.pid\n\
 ' > /usr/local/bin/init-dkim.sh && chmod +x /usr/local/bin/init-dkim.sh
 
 # Inyectar nuestro script en el arranque del contenedor
