@@ -19,7 +19,7 @@ bundle exec rails db:prepare
 echo "Exporting DKIM keys..."
 # Limpiamos el archivo de configuración en la ruta real del volumen
 DKIM_PATH="${OPENDKIM_DATA_PATH:-config/opendkim}"
-rm -f "$DKIM_PATH/opendkim.conf"
+rm -rf "$DKIM_PATH/opendkim.conf"
 bundle exec rake enkimail:export_dkim_keys RAILS_ENV=${RAILS_ENV:-production} DISABLE_DATABASE_ENVIRONMENT_CHECK=1 || echo "DKIM export skipped or failed."
 
 # Asegurar permisos del volumen compartido para que Postfix pueda leerlo
