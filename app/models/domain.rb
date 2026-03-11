@@ -126,6 +126,9 @@ class Domain < ApplicationRecord
       Mode                    sv
       SubDomains              no
       OversignHeaders         From
+      # Debugging
+      SyslogSuccess           yes
+      LogWhy                  yes
     CONF
     File.write(directory.join("opendkim.conf"), conf_content)
     File.chmod(0644, directory.join("opendkim.conf"))
