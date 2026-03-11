@@ -1,3 +1,4 @@
+# Force rebuild to apply milter socket changes
 FROM mwader/postfix-relay:latest
 
 # Script para esperar a las llaves de Rails y configurar OpenDKIM
@@ -7,23 +8,18 @@ until [ -f "/etc/opendkim/keys/truek.xyz/enki.private" ]; do\n\
   sleep 2\n\
 done\n\
 echo "Llaves detectadas. Ajustando permisos..."\n\
-# Asegurarnos de que el directorio del socket de sistema sea accesible\n\
-mkdir -p /run/opendkim\n\
-chown opendkim:opendkim /run/opendkim\n\
-chmod 0750 /run/opendkim\n\
-# Añadir postfix al grupo opendkim para que lea el socket\n\
-adduser postfix opendkim\n\
-\n\
 chown -R opendkim:opendkim /etc/opendkim\n\
 chmod -R 0750 /etc/opendkim\n\
 find /etc/opendkim/keys -name "*.private" -type f -exec chmod 600 {} \;\n\
 \n\
-echo "Arrancando OpenDKIM con configuracion forzada..."\n\
-# Matamos CUALQUIER proceso previo de opendkim de la imagen base\n\
+echo "Arrancando OpenDKIM con puerto TCP 12301..."\n\
+# Matamos CUALQUIER proceso previo de opendkim\n\
 pkill -9 opendkim || true\n\
-rm -f /run/opendkim/opendkim.sock /run/opendkim/opendkim.pid\n\
+# Limpiamos archivos de PID antiguos\n\
+rm -f /run/opendkim/opendkim.pid\n\
+# Lanzamos OpenDKIM forzando el puerto TCP\n\
 /usr/sbin/opendkim -u opendkim -x /etc/opendkim/opendkim.conf -P /run/opendkim/opendkim.pid\n\
 ' > /usr/local/bin/init-dkim.sh && chmod +x /usr/local/bin/init-dkim.sh
 
-# Inyectar nuestro script en el arranque del contenedor
+# Inyectar nuestro script en el arranque del contenedor antes de Postfix
 RUN sed -i '/^Starting OpenDKIM/i /usr/local/bin/init-dkim.sh &' /root/run
