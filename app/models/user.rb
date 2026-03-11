@@ -16,6 +16,10 @@ class User < ApplicationRecord
     pro? ? 1000 : 300
   end
 
+  def transactional_rolling_limit
+    pro? ? 1000 : 300
+  end
+
   def can_send_emails?
     daily_email_count < daily_email_limit
   end
