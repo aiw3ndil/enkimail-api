@@ -7,8 +7,9 @@ module Api
         
         @total_campaigns = current_user.campaigns.count
         @total_contacts = current_user.contacts.count
-        # Transactional Sent (Last 30 days for limits)
-        transactional_30_days = current_user.transactional_emails_last_30_days
+        # Daily Limits
+        daily_current = current_user.daily_email_count
+        daily_limit = current_user.daily_email_limit
 
         # Total lifetime count (Counter Cache)
         transactional_total = current_user.transactional_emails_count
@@ -45,7 +46,13 @@ module Api
           total_contacts: @total_contacts,
           total_sent: @total_sent,
           breakdown: {
-            sent: { total: @total_sent, campaign: campaign_sent, transactional: transactional_total, transactional_30_days: transactional_30_days }
+            sent: { 
+              total: @total_sent, 
+              campaign: campaign_sent, 
+              transactional: transactional_total,
+              daily_current: daily_current,
+              daily_limit: daily_limit
+            }
           },
           rates: {
             open_rate: open_rate,
