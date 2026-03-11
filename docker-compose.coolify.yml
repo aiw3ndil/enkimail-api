@@ -65,8 +65,8 @@ services:
       POSTFIX_inet_protocols: ipv4
       POSTFIX_myhostname: mail.enkimail.com
       POSTFIX_mynetworks: 127.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 10.0.0.0/8
-      POSTFIX_smtpd_milters: unix:/run/opendkim/opendkim.sock
-      POSTFIX_non_smtpd_milters: unix:/run/opendkim/opendkim.sock
+      POSTFIX_smtpd_milters: ""
+      POSTFIX_non_smtpd_milters: ""
       # IMPORTANTE: Dejar vacío para que no genere llaves automáticas
       OPENDKIM_DOMAINS: ""
     restart: always
