@@ -69,6 +69,8 @@ services:
       OPENDKIM_DOMAINS: "truek.xyz=enki"
       # Selector unificado
       OPENDKIM_selector: enki
+      # Forzar el formato que pide Gmail
+      OPENDKIM_CANONICALIZATION: relaxed/simple
       # Evita fallos por permisos de volumen de Docker
       OPENDKIM_RequireSafeKeys: "no"
     restart: always
