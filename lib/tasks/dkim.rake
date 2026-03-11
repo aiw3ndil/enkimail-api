@@ -1,7 +1,6 @@
 namespace :enkimail do
   desc "Export all verified domain DKIM keys and regenerate OpenDKIM config files"
   task export_dkim_keys: :environment do
-    puts "ENV OPENDKIM_DATA_PATH: #{ENV['OPENDKIM_DATA_PATH']}"
     # First export each domain's private key
     Domain.verified.find_each do |domain|
       begin
