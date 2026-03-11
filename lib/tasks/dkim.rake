@@ -1,6 +1,7 @@
 namespace :enkimail do
   desc "Export all verified domain DKIM keys and regenerate OpenDKIM config files"
   task export_dkim_keys: :environment do
+    puts "ENV OPENDKIM_DATA_PATH: #{ENV['OPENDKIM_DATA_PATH']}"
     # First export each domain's private key
     Domain.verified.find_each do |domain|
       begin
@@ -27,7 +28,8 @@ namespace :enkimail do
 
     # Then regenerate all shared config files from scratch (clean, no duplicates)
     begin
-      Domain.regenerate_opendkim_config
+      base_dir = ENV['OPENDKIM_DATA_PATH'] || Rails.root.join("config", "opendkim")
+      Domain.regenerate_opendkim_config(base_dir)
       puts "Regenerated OpenDKIM config files (KeyTable, SigningTable, TrustedHosts, opendkim.conf)"
     rescue => e
       puts "Failed to regenerate OpenDKIM config files: #{e.message}"
