@@ -1,21 +1,21 @@
 FROM mwader/postfix-relay:latest
 
-# Create a script to fix permissions and ownership of DKIM keys
-RUN mkdir -p /usr/local/bin && \
-    echo '#!/bin/bash\n\
-if [ -d "/etc/opendkim/keys" ]; then\n\
-  echo "Fixing DKIM permissions..."\n\
-  find /etc/opendkim/keys -name "*.private" -type f -exec chmod 600 {} \;\n\
-  find /etc/opendkim/keys -name "*.private" -type f -exec chown opendkim:opendkim {} \;\n\
-  # Ensure the directory itself is accessible\n\
-  find /etc/opendkim/keys -type d -exec chmod 755 {} \;\n\
-fi' > /usr/local/bin/fix-dkim-perms.sh && \
-    chmod +x /usr/local/bin/fix-dkim-perms.sh
+# Script para esperar a las llaves de Rails y configurar OpenDKIM
+RUN echo '#!/bin/bash\n\
+echo "Esperando a que Rails exporte las llaves DKIM..."\n\
+until [ -f "/etc/opendkim/keys/truek.xyz/enki.private" ]; do\n\
+  sleep 2\n\
+done\n\
+echo "Llaves detectadas. Ajustando permisos..."\n\
+chown -R opendkim:opendkim /etc/opendkim\n\
+chmod -R 0750 /etc/opendkim\n\
+find /etc/opendkim/keys -name "*.private" -type f -exec chmod 600 {} \;\n\
+\n\
+echo "Arrancando OpenDKIM con configuracion forzada..."\n\
+# Matamos cualquier proceso previo y lanzamos el nuestro con relaxed/simple\n\
+pkill -9 opendkim\n\
+/usr/sbin/opendkim -u opendkim -x /etc/opendkim/opendkim.conf -P /run/opendkim/opendkim.pid\n\
+' > /usr/local/bin/init-dkim.sh && chmod +x /usr/local/bin/init-dkim.sh
 
-# Create a wrapper for opendkim to force our configuration
-RUN mv /usr/sbin/opendkim /usr/sbin/opendkim.real && \
-    echo '#!/bin/bash\n\
-/usr/local/bin/fix-dkim-perms.sh\n\
-echo "Starting OpenDKIM with custom config..."\n\
-exec /usr/sbin/opendkim.real -x /etc/opendkim/opendkim.conf "$@"' > /usr/sbin/opendkim && \
-    chmod +x /usr/sbin/opendkim
+# Inyectar nuestro script en el arranque del contenedor
+RUN sed -i '/^Starting OpenDKIM/i /usr/local/bin/init-dkim.sh &' /root/run
