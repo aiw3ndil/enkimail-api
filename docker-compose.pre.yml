@@ -6,7 +6,7 @@ services:
     command: /usr/bin/entrypoint.sh rails s -p 3001 -b '0.0.0.0'
     volumes:
       - .:/app
-      - opendkim_data:/etc/opendkim
+      - enkimail_dkim_sync:/etc/opendkim
     ports:
       - "3001:3001"
     depends_on:
@@ -27,7 +27,7 @@ services:
     command: bundle exec sidekiq
     volumes:
       - .:/app
-      - opendkim_data:/etc/opendkim
+      - enkimail_dkim_sync:/etc/opendkim
     depends_on:
       - db
       - redis
