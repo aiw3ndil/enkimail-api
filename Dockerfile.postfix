@@ -8,10 +8,26 @@ RUN echo '#!/bin/bash\n\
   until [ -f "/etc/opendkim/opendkim.conf" ] && [ -n "$(ls -A /etc/opendkim/keys 2>/dev/null)" ]; do\n\
   sleep 2\n\
   done\n\
-  echo "Llaves detectadas. Ajustando permisos..."\n\
+  echo "Llaves detectadas. Estructura encontrada:"\n\
+  ls -lR /etc/opendkim/keys\n\
+  \n\
+  echo "Ajustando permisos y propiedad..."\n\
   mkdir -p /run/opendkim\n\
+  # Determinamos el usuario de opendkim (suele ser opendkim o el del proceso postfix)\n\
+  DKIM_USER=$(grep "^Socket" /etc/opendkim/opendkim.conf | grep -o "[:][^@]*" | cut -d: -f2 || echo "opendkim")\n\
+  # Si no lo encontramos, usamos opendkim por defecto\n\
+  ID_OPENDKIM=$(id -u opendkim 2>/dev/null || echo "0")\n\
+  \n\
   chown -R root:root /etc/opendkim\n\
+  # Las llaves deben ser legibles por el usuario opendkim\n\
+  if [ "$ID_OPENDKIM" != "0" ]; then\n\
+  chown -R opendkim:opendkim /etc/opendkim/keys\n\
+  fi\n\
+  \n\
   chmod -R 0755 /etc/opendkim\n\
+  find /etc/opendkim/keys -type f -exec chmod 0640 {} \\;\n\
+  find /etc/opendkim/keys -type d -exec chmod 0750 {} \\;\n\
+  \n\
   chown opendkim:opendkim /run/opendkim\n\
   chmod 0755 /run/opendkim\n\
   \n\
@@ -20,11 +36,10 @@ RUN echo '#!/bin/bash\n\
   pkill -9 opendkim || true\n\
   rm -f /run/opendkim/opendkim.pid\n\
   \n\
-  # Lanzamos OpenDKIM como root para garantizar acceso a las llaves montadas\n\
-  # El archivo opendkim.conf generado por Rails ya define el puerto 12301\n\
+  # Lanzamos OpenDKIM\n\
   /usr/sbin/opendkim -x /etc/opendkim/opendkim.conf -P /run/opendkim/opendkim.pid\n\
   \n\
-  # Esperar a que OpenDKIM esté escuchando (usando /dev/tcp para evitar dependencia de nc)\n\
+  # Esperar a que OpenDKIM esté escuchando\n\
   echo "Verificando puerto 12301..."\n\
   for i in {1..10}; do\n\
   if timeout 1 bash -c "cat < /dev/null > /dev/tcp/127.0.0.1/12301" 2>/dev/null; then\n\
