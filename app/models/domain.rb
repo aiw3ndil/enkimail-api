@@ -117,7 +117,7 @@ class Domain < ApplicationRecord
       Syslog                  yes
       LogWhy                  yes
       UMask                   002
-      Socket                  local:/var/spool/postfix/opendkim/opendkim.sock
+      Socket                  local:/etc/opendkim/opendkim.sock
       KeyTable                /etc/opendkim/KeyTable
       SigningTable            refile:/etc/opendkim/SigningTable
       ExternalIgnoreList      refile:/etc/opendkim/TrustedHosts

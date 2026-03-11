@@ -7,9 +7,6 @@ until [ -f "/etc/opendkim/keys/truek.xyz/enki.private" ]; do\n\
   sleep 2\n\
 done\n\
 echo "Llaves detectadas. Ajustando permisos..."\n\
-mkdir -p /var/spool/postfix/opendkim\n\
-chown opendkim:opendkim /var/spool/postfix/opendkim\n\
-chmod 0750 /var/spool/postfix/opendkim\n\
 # Add postfix user to opendkim group so it can read the socket\n\
 adduser postfix opendkim\n\
 \n\
