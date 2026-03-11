@@ -8,7 +8,7 @@ namespace :enkimail do
       FileUtils.mkdir_p(keys_directory)
       key_file = keys_directory.join("#{domain.dkim_selector}.private")
       File.write(key_file, domain.dkim_private_key)
-      File.chmod(0644, key_file)
+      File.chmod(0600, key_file)
       puts "Exported key for #{domain.name} (selector: #{domain.dkim_selector})"
     end
 
