@@ -7,7 +7,7 @@
 
 Rails.application.config.middleware.insert_before 0, Rack::Cors do
   allow do
-    origins "http://localhost:3000", /https:\/\/enkimail-frontend.*\.vercel\.app/, "https://www.enkimail.com"
+    origins "http://localhost:3000", /https:\/\/enkimail-frontend.*\.vercel\.app/, "https://www.enkimail.com", "https://www.enkihost.com"
 
     resource "*",
       headers: :any,
