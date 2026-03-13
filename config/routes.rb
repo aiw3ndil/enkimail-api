@@ -3,6 +3,9 @@ require 'rack/session/cookie'
 Sidekiq::Web.use Rack::Session::Cookie, secret: Rails.application.credentials.secret_key_base, same_site: :lax, max_age: 86400
 
 Rails.application.routes.draw do
+  post '/signup', to: 'api/v1/authentication#register'
+  post '/login', to: 'api/v1/authentication#login'
+
   # Tracking routes
   get '/track/opens/:email_event_id', to: 'tracking#open', as: :track_open
   get '/track/clicks/:email_event_id', to: 'tracking#click', as: :track_click
