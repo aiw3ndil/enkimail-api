@@ -22,9 +22,6 @@ services:
       timeout: 5s
       retries: 3
       start_period: 60s
-    depends_on:
-      - db
-      - redis
 
   # Sidekiq
   sidekiq:
@@ -44,8 +41,6 @@ services:
       SMTP_DOMAIN: enkimail.com
       TZ: Europe/Helsinki
     depends_on:
-      - db
-      - redis
       - postfix
 
   # Servidor de correo Postfix
@@ -73,34 +68,10 @@ services:
       DKIM_PATH: /etc/dkim-shared
     restart: always
 
-  # Base de Datos
-  db:
-    image: postgres:15
-    networks:
-      - enkimail-net
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: enkimail_production
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    restart: always
-
-  # Redis
-  redis:
-    image: redis:7
-    networks:
-      - enkimail-net
-    volumes:
-      - redis_data:/data
-    restart: always
-
 networks:
   enkimail-net:
     driver: bridge
 
 volumes:
   postfix_queue:
-  postgres_data:
-  redis_data:
   enkimail_dkim_sync:
