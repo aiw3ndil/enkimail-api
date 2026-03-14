@@ -17,6 +17,4 @@ test:
 
 production:
   <<: *default
-  database: <%= ENV.fetch("DB_NAME") { "enkimail_production" } %>
-  # Alternatively, if you prefer using a single URL:
-  # url: <%= ENV["DATABASE_URL"] %>
+  url: <%= ENV["DATABASE_URL"] %>
