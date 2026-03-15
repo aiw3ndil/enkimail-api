@@ -3,6 +3,9 @@ services:
   web:
     build: .
     command: bundle exec rails server -b 0.0.0.0
+    # Expose port 3000 so Coolify/Traefik can route traffic to the Rails server.
+    expose:
+      - "3000"
     networks:
       - enkimail-net
     dns:
