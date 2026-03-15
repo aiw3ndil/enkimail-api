@@ -97,17 +97,10 @@ Rails.application.configure do
   # Do not dump schema after migrations.
   config.active_record.dump_schema_after_migration = false
 
-  # Enable DNS rebinding protection and other `Host` header attacks.
-  # config.hosts = [
-  #   "example.com",     # Allow requests from example.com
-  #   /.*\.example\.com/ # Allow requests from subdomains like `www.example.com`
-  # ]
+  # Allow requests from the production API domain.
+  # Also covers cases where proxies send doubled host headers (e.g. "api.enkimail.com, api.enkimail.com").
+  config.hosts << "api.enkimail.com"
+
   # Skip DNS rebinding protection for the default health check endpoint.
   config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
-
-  # Completely disable Host Authorization middleware to support proxies 
-  # that send doubled host headers (e.g. "api.enkimail.com, api.enkimail.com").
-  config.after_initialize do
-    Rails.application.config.middleware.delete ActionDispatch::HostAuthorization
-  end
 end
