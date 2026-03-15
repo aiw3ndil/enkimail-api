@@ -58,9 +58,8 @@ Rails.application.configure do
   # ---------------------------------------------------------------------------
   # HOST AUTHORIZATION
   # ---------------------------------------------------------------------------
-  # Disabled: this API runs behind Traefik (Coolify) which sends duplicate Host
-  # headers (e.g. "api.enkimail.com, api.enkimail.com"). DNS rebinding protection
-  # is not applicable here since the API is secured by JWT tokens and CORS.
-  config.hosts = []
-  config.host_authorization = { exclude: ->(request) { true } }
+  # Removed from middleware stack: this API runs behind Traefik (Coolify) which
+  # sends duplicate Host headers causing false rejections. Security is handled
+  # by JWT tokens and CORS — DNS rebinding protection is not applicable here.
+  config.middleware.delete ActionDispatch::HostAuthorization
 end
