@@ -106,8 +106,11 @@ Rails.application.configure do
   config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
 
   # Allow access from api.enkimail.com and others via environment variables.
+  # Using a regular expression to match the host and any subdomains if needed.
   config.hosts << "api.enkimail.com"
+  config.hosts << ".enkimail.com"
+  
   if ENV["RAILS_HOSTS"].present?
-    ENV["RAILS_HOSTS"].split(",").each { |host| config.hosts << host.strip }
+    ENV["RAILS_HOSTS"].split(",").map(&:strip).each { |host| config.hosts << host }
   end
 end
