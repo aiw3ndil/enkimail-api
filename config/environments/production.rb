@@ -105,8 +105,8 @@ Rails.application.configure do
   # Skip DNS rebinding protection for the default health check endpoint.
   config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
 
-  # Disable host authorization in production as the proxy (Coolify/Traefik) 
-  # already handles domain routing and validation. This prevents issues with
-  # doubled host headers (e.g. "api.enkimail.com, api.enkimail.com").
-  config.hosts = nil
+  # Allow all hosts in production to support proxy-forwarded headers
+  # which can sometimes be doubled (e.g. "api.enkimail.com, api.enkimail.com").
+  config.hosts.clear
+  config.hosts << /.*/
 end
