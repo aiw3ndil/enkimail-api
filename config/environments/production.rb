@@ -56,14 +56,14 @@ Rails.application.configure do
   config.active_record.dump_schema_after_migration = false
 
   # ---------------------------------------------------------------------------
-  # HOST AUTHORIZATION - DEFINITIVE FIX FOR COOLIFY PROXY
+  # HOST AUTHORIZATION - DEBUG & CLEAR
   # ---------------------------------------------------------------------------
-  # Some proxies (like Coolify/Traefik) can double host headers: 
-  # e.g. "api.enkimail.com, api.enkimail.com"
-  # This makes Rails throw "Blocked hosts" errors.
-  # Setting config.hosts to nil disables this check completely in production.
-  config.hosts = nil
+  # Clear existing hosts and allow everything via regex to handle doubled headers.
+  config.hosts.clear
+  config.hosts << /.*/
+  
+  puts "RAILS_PRODUCTION_LOG: config.hosts cleared and set to /.*/"
 
-  # Skip host authorization for health check endpoint just in case.
+  # Skip host authorization for health check endpoint.
   config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
 end
