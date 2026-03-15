@@ -107,5 +107,7 @@ Rails.application.configure do
 
   # Completely disable Host Authorization middleware to support proxies 
   # that send doubled host headers (e.g. "api.enkimail.com, api.enkimail.com").
-  config.middleware.delete ActionDispatch::HostAuthorization
+  config.after_initialize do
+    Rails.application.config.middleware.delete ActionDispatch::HostAuthorization
+  end
 end
