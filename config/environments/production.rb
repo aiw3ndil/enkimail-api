@@ -60,8 +60,7 @@ Rails.application.configure do
   # ---------------------------------------------------------------------------
   # HOST AUTHORIZATION
   # ---------------------------------------------------------------------------
-  # Disabled: this API runs behind Traefik (Coolify) which sends duplicate Host
-  # headers. Security is handled by JWT tokens and CORS.
-  config.hosts.clear
+  # Allow all hosts to prevent issues with duplicate headers from proxies.
+  config.hosts << /.*/
   config.middleware.delete ActionDispatch::HostAuthorization
 end

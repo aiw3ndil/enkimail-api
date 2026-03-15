@@ -15,6 +15,11 @@ module EnkimailApi
     end
 
     def call(env)
+      # Debug logging for production.
+      if Rails.env.production?
+        puts "RAILS_PRODUCTION_DEBUG: Host=#{env['HTTP_HOST']}, X-Forwarded-Host=#{env['HTTP_X_FORWARDED_HOST']}, X-Forwarded-Proto=#{env['HTTP_X_FORWARDED_PROTO']}"
+      end
+
       # Normalize HTTP_HOST (e.g. "api.enkimail.com, api.enkimail.com" -> "api.enkimail.com")
       if env["HTTP_HOST"]&.include?(",")
         env["HTTP_HOST"] = env["HTTP_HOST"].split(",").first.strip
@@ -41,12 +46,11 @@ module EnkimailApi
     config.active_job.queue_adapter = :sidekiq
     config.active_record.default_timezone = :utc
 
-    # Insert NormalizeHostMiddleware at the top of the stack to fix duplicated
-    # Host headers before any other middleware processes them.
+    # Insert NormalizeHostMiddleware at the top of the stack.
     config.middleware.insert_before 0, NormalizeHostMiddleware
 
-    # Disable HostAuthorization: this API runs behind Traefik (Coolify) which
-    # sends duplicated Host headers. Security is handled by JWT and CORS.
-    config.hosts.clear
+    # Definitive fix for Blocked Hosts: Allow everything via regex wildcard.
+    # This bypasses the HostAuthorization internal check logic.
+    config.hosts << /.*/
   end
 end
