@@ -13,8 +13,10 @@ Rails.application.configure do
   # Store uploaded files on the local file system.
   config.active_storage.service = :local
 
-  # Force all access to the app over SSL.
-  config.force_ssl = true
+  # SSL is terminated by Traefik (Coolify). Rails must NOT force_ssl because
+  # Traefik forwards traffic as plain HTTP internally, causing a redirect loop.
+  config.force_ssl = false
+  config.assume_ssl = true
 
   # Log to STDOUT by default.
   config.logger = ActiveSupport::Logger.new(STDOUT)
