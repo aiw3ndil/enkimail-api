@@ -58,8 +58,8 @@ Rails.application.configure do
   # ---------------------------------------------------------------------------
   # HOST AUTHORIZATION
   # ---------------------------------------------------------------------------
-  # Removed from middleware stack: this API runs behind Traefik (Coolify) which
-  # sends duplicate Host headers causing false rejections. Security is handled
-  # by JWT tokens and CORS — DNS rebinding protection is not applicable here.
+  # Disabled: this API runs behind Traefik (Coolify) which sends duplicate Host
+  # headers. Security is handled by JWT tokens and CORS.
+  config.hosts.clear
   config.middleware.delete ActionDispatch::HostAuthorization
 end

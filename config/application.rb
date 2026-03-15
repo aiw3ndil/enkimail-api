@@ -41,7 +41,12 @@ module EnkimailApi
     config.active_job.queue_adapter = :sidekiq
     config.active_record.default_timezone = :utc
 
-    # Insertamos el middleware al principio de la pila para limpiar el host antes de validarlo
+    # Insert NormalizeHostMiddleware at the top of the stack to fix duplicated
+    # Host headers before any other middleware processes them.
     config.middleware.insert_before 0, NormalizeHostMiddleware
+
+    # Disable HostAuthorization: this API runs behind Traefik (Coolify) which
+    # sends duplicated Host headers. Security is handled by JWT and CORS.
+    config.hosts.clear
   end
 end
