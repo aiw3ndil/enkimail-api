@@ -6,7 +6,7 @@ rm -f /app/tmp/pids/server.pid
 
 # Esperar a que la base de datos esté lista
 echo "Waiting for database..."
-until bundle exec rails db:version; do
+until bundle exec rails db:version > /dev/null 2>&1; do
   echo "Database not ready, retrying in 2s..."
   sleep 2
 done

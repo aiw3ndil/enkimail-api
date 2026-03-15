@@ -105,10 +105,9 @@ Rails.application.configure do
   # Skip DNS rebinding protection for the default health check endpoint.
   config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
 
-  # Explicitly allow api.enkimail.com as per production error report.
+  # Allow access from api.enkimail.com and others via environment variables.
   config.hosts << "api.enkimail.com"
-
-  if ENV['RAILS_HOSTS']
-    ENV['RAILS_HOSTS'].split(',').each { |host| config.hosts << host }
+  if ENV["RAILS_HOSTS"].present?
+    ENV["RAILS_HOSTS"].split(",").each { |host| config.hosts << host.strip }
   end
 end
