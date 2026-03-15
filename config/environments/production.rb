@@ -56,13 +56,10 @@ Rails.application.configure do
   config.active_record.dump_schema_after_migration = false
 
   # ---------------------------------------------------------------------------
-  # HOST AUTHORIZATION - DEBUG & CLEAR
+  # HOST AUTHORIZATION
   # ---------------------------------------------------------------------------
-  # Clear existing hosts and allow everything via regex to handle doubled headers.
-  config.hosts.clear
-  config.hosts << /.*/
-  
-  puts "RAILS_PRODUCTION_LOG: config.hosts cleared and set to /.*/"
+  # Allow requests from the production API domain.
+  config.hosts << "api.enkimail.com"
 
   # Skip host authorization for health check endpoint.
   config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
