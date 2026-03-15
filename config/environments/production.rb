@@ -58,9 +58,9 @@ Rails.application.configure do
   # ---------------------------------------------------------------------------
   # HOST AUTHORIZATION
   # ---------------------------------------------------------------------------
-  # Allow requests from the production API domain.
-  config.hosts << "api.enkimail.com"
-
-  # Skip host authorization for health check endpoint.
-  config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
+  # Disabled: this API runs behind Traefik (Coolify) which sends duplicate Host
+  # headers (e.g. "api.enkimail.com, api.enkimail.com"). DNS rebinding protection
+  # is not applicable here since the API is secured by JWT tokens and CORS.
+  config.hosts = []
+  config.host_authorization = { exclude: ->(request) { true } }
 end
