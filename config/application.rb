@@ -7,17 +7,24 @@ require "rails/all"
 Bundler.require(*Rails.groups)
 
 module EnkimailApi
-  # Middleware para limpiar cabeceras Host duplicadas (común en proxies como Coolify/Traefik)
+  # Middleware to clean duplicated Host headers sent by reverse proxies like Coolify/Traefik.
+  # Normalizes both HTTP_HOST and HTTP_X_FORWARDED_HOST headers.
   class NormalizeHostMiddleware
     def initialize(app)
       @app = app
     end
 
     def call(env)
-      if env["HTTP_HOST"] && env["HTTP_HOST"].include?(",")
-        # Si hay "host1, host1", nos quedamos solo con el primero
+      # Normalize HTTP_HOST (e.g. "api.enkimail.com, api.enkimail.com" -> "api.enkimail.com")
+      if env["HTTP_HOST"]&.include?(",")
         env["HTTP_HOST"] = env["HTTP_HOST"].split(",").first.strip
       end
+
+      # Normalize X-Forwarded-Host sent by proxies
+      if env["HTTP_X_FORWARDED_HOST"]&.include?(",")
+        env["HTTP_X_FORWARDED_HOST"] = env["HTTP_X_FORWARDED_HOST"].split(",").first.strip
+      end
+
       @app.call(env)
     end
   end
