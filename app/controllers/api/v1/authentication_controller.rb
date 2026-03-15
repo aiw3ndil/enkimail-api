@@ -8,10 +8,24 @@ class Api::V1::AuthenticationController < ApplicationController
   def google_login
     validator = GoogleIDToken::Validator.new
     begin
+      # Debugging logs for production
+      puts "GOOGLE_AUTH_DEBUG: Received id_token: #{params[:id_token].to_s[0..10]}..."
+      puts "GOOGLE_AUTH_DEBUG: Using GOOGLE_CLIENT_ID: #{ENV['GOOGLE_CLIENT_ID']&.to_s[0..10]}..."
+
+      if ENV['GOOGLE_CLIENT_ID'].blank?
+        puts "GOOGLE_AUTH_DEBUG: ERROR - GOOGLE_CLIENT_ID is blank"
+      end
+
       # Check if token is valid
       # Note: Frontend must send id_token
       payload = validator.check(params[:id_token], ENV['GOOGLE_CLIENT_ID'])
       
+      if payload
+        puts "GOOGLE_AUTH_DEBUG: Payload verified for email: #{payload['email']}"
+      else
+        puts "GOOGLE_AUTH_DEBUG: Validation failed (payload is nil)"
+      end
+
       # Find or create user
       user = User.find_or_initialize_by(email: payload['email'])
       
@@ -31,11 +45,15 @@ class Api::V1::AuthenticationController < ApplicationController
           stripe_subscription_id: user.stripe_subscription_id
         }, status: :ok
       else
+        puts "GOOGLE_AUTH_DEBUG: User save failed: #{user.errors.full_messages}"
         render json: { error: user.errors.full_messages }, status: :unprocessable_entity
       end
     rescue GoogleIDToken::ValidationError => e
+      puts "GOOGLE_AUTH_DEBUG: ValidationError - #{e.message}"
       render json: { error: "Invalid Google token: #{e.message}" }, status: :unauthorized
     rescue StandardError => e
+      puts "GOOGLE_AUTH_DEBUG: StandardError - #{e.message}"
+      puts e.backtrace.first(10).join("\n")
       render json: { error: "Google Auth Error: #{e.message}" }, status: :internal_server_error
     end
   end
