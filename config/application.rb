@@ -31,10 +31,5 @@ module EnkimailApi
     config.api_only = true
     config.active_job.queue_adapter = :sidekiq
     config.active_record.default_timezone = :utc
-
-    # Insert middleware to normalize duplicate Host headers sent by some reverse proxies
-    # (e.g. Coolify/Traefik sending "api.enkimail.com, api.enkimail.com").
-    # Must run before ActionDispatch::HostAuthorization.
-    config.middleware.insert_before ActionDispatch::HostAuthorization, NormalizeHostMiddleware
   end
 end
